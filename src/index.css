@@ -1,0 +1,237 @@
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+/* ============================================
+   Theme + custom animations (Tailwind v4 CSS-first)
+   ============================================ */
+@theme {
+  --animate-pulse-slow: pulse 8s ease-in-out infinite;
+  --animate-pulse-slower: pulse 12s ease-in-out infinite;
+  --animate-float: float 10s ease-in-out infinite;
+  --animate-gradient-x: gradient-x 4s ease infinite;
+
+  @keyframes float {
+    0%, 100% { transform: translate(-50%, 0) scale(1); }
+    50%      { transform: translate(-50%, -30px) scale(1.05); }
+  }
+
+  @keyframes gradient-x {
+    0%, 100% { background-position: 0% 50%; }
+    50%      { background-position: 100% 50%; }
+  }
+}
+
+/* ============================================
+   Base layer
+   ============================================ */
+@layer base {
+  body {
+    @apply bg-[#08060f] text-white antialiased;
+  }
+}
+
+/* ============================================
+   Custom utility: animated gradient text
+   ============================================ */
+@utility shimmer-text {
+  background: linear-gradient(
+    90deg,
+    #a78bfa 0%,
+    #f0abfc 25%,
+    #67e8f9 50%,
+    #f0abfc 75%,
+    #a78bfa 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 4s linear infinite;
+  filter: drop-shadow(0 0 18px rgba(168, 85, 247, 0.45));
+
+  @keyframes shimmer {
+    0%   { background-position: 0% center; }
+    100% { background-position: 200% center; }
+  }
+}
+
+/* Append to the end of src/index.css */
+
+@media print {
+  /* Force background colors to actually print */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  html,
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Hide the global navbar and anything with .print\:hidden */
+  nav {
+    display: none !important;
+  }
+
+  /* Tighten the printable area */
+  .print-area {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Make sure each coin card breaks cleanly */
+  .coin-card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* A4 portrait page margins */
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+}
+
+/* Append to src/index.css */
+
+/* Scrollbar for the admin panel lists */
+.max-h-\[60vh\]::-webkit-scrollbar {
+  width: 8px;
+}
+
+.max-h-\[60vh\]::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+}
+
+.max-h-\[60vh\]::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.3);
+  border-radius: 8px;
+}
+
+.max-h-\[60vh\]::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.5);
+}
+
+/* Firefox */
+.max-h-\[60vh\] {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(168, 85, 247, 0.3) rgba(255, 255, 255, 0.02);
+}
+
+/* Horizontal scrollbar for the reuse chips */
+.reuse-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(168, 85, 247, 0.25) transparent;
+}
+
+.reuse-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+.reuse-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.reuse-scroll::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.25);
+  border-radius: 999px;
+}
+
+.reuse-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.5);
+}
+
+/* Hide number input spinners everywhere */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* =========================================================
+   Custom scrollbar — DJ list and any scrollable pane
+   ========================================================= */
+
+/* Firefox */
+.djs-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(168, 85, 247, 0.35) transparent;
+}
+
+/* WebKit (Chrome, Edge, Safari, Brave, Opera) */
+.djs-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.djs-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 4px 0;
+}
+
+.djs-scroll::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.2);
+  border-radius: 999px;
+  transition: background 0.2s ease;
+}
+
+.djs-scroll:hover::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.45);
+}
+
+.djs-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(200, 120, 255, 0.7);
+}
+
+/* Hide the little square button in the corner where x and y scrollbars meet */
+.djs-scroll::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+
+/* =========================================================
+   DJ list scroll — functional but invisible
+   ========================================================= */
+
+/* Hide scrollbar in Firefox */
+.djs-scroll {
+  scrollbar-width: none;
+}
+
+/* Hide scrollbar in Chrome, Edge, Safari, Brave, Opera */
+.djs-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+/* IE/Edge legacy (harmless fallback) */
+.djs-scroll {
+  -ms-overflow-style: none;
+}
+
+/* =========================================================
+   Hide the browser page scrollbar globally
+   Content still scrolls with wheel / touch / keyboard.
+   ========================================================= */
+
+html,
+body {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE / old Edge */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+

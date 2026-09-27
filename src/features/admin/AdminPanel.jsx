@@ -144,32 +144,25 @@ export default function AdminPanel() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#08060f]">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-40 -left-40 w-[32rem] h-[32rem] rounded-full bg-purple-600/25 blur-[130px] animate-pulse-slow" />
-        <div className="absolute top-1/3 -right-40 w-[30rem] h-[30rem] rounded-full bg-fuchsia-500/20 blur-[130px] animate-pulse-slower" />
-        <div className="absolute bottom-0 left-1/3 w-[24rem] h-[24rem] rounded-full bg-cyan-400/15 blur-[130px] animate-float" />
+    <div className="relative min-h-screen overflow-hidden bg-[var(--canvas)]">
+      <div className="pointer-events-none absolute inset-0 hidden dark:block">
+        <div className="absolute -top-40 -left-40 w-[32rem] h-[32rem] rounded-full bg-purple-600/15 blur-[130px] animate-pulse-slow" />
+        <div className="absolute top-1/3 -right-40 w-[30rem] h-[30rem] rounded-full bg-fuchsia-500/10 blur-[130px] animate-pulse-slower" />
       </div>
-
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.05]"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)',
-          backgroundSize: '44px 44px',
-        }}
-      />
 
       <div className="relative max-w-6xl mx-auto p-6">
         <div className="flex items-center gap-3 mb-8">
-          <HiOutlineSparkles className="text-purple-300 text-3xl drop-shadow-[0_0_14px_rgba(168,85,247,0.7)]" />
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-            <span className="shimmer-text">Admin</span>
+          <HiOutlineSparkles className="text-[var(--ink-muted)] text-2xl" />
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[var(--ink)]">
+            Admin
           </h1>
         </div>
 
         {lastAdded && (
-          <div className="mb-6 flex items-center gap-2 text-green-300 bg-green-500/10 border border-green-500/30 rounded-xl px-4 py-3 backdrop-blur">
+          <div className="mb-6 flex items-center gap-2
+                          text-green-600 dark:text-green-300
+                          bg-green-500/[0.08] border border-green-500/20
+                          rounded-xl px-4 py-3">
             <FiCheckCircle />
             <span className="text-sm">
               <strong>{lastAdded.stage_name}</strong> is now live on the DJ board.
@@ -177,7 +170,9 @@ export default function AdminPanel() {
           </div>
         )}
         {error && (
-          <div className="mb-6 text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 backdrop-blur">
+          <div className="mb-6 text-sm text-red-500 dark:text-red-300/90
+                          bg-red-500/[0.08] border border-red-500/20
+                          rounded-xl px-4 py-3">
             {error}
           </div>
         )}
@@ -187,13 +182,13 @@ export default function AdminPanel() {
           <section className="min-w-0">
             <form
               onSubmit={handleSubmit}
-              className="rounded-3xl p-6
-                         bg-white/[0.04] backdrop-blur-2xl
-                         border border-white/10
-                         shadow-[0_8px_40px_0_rgba(139,92,246,0.18),inset_0_1px_0_0_rgba(255,255,255,0.1)]"
+              className="rounded-2xl p-6
+                         bg-[var(--surface)] backdrop-blur-xl
+                         border border-[var(--hairline)]
+                         shadow-[0_20px_60px_-20px_rgba(0,0,0,0.4)]"
             >
-              <h2 className="text-lg font-semibold text-white/90 mb-5 flex items-center gap-2">
-                <FiUser className="text-purple-300" />
+              <h2 className="text-base font-semibold text-[var(--ink)] mb-5 flex items-center gap-2">
+                <FiUser className="text-[var(--ink-muted)]" />
                 Add a new DJ
               </h2>
 
@@ -230,69 +225,65 @@ export default function AdminPanel() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="group relative mt-5 w-full overflow-hidden rounded-xl
-                           bg-gradient-to-r from-purple-500 via-fuchsia-500 to-purple-500
-                           bg-[length:200%_100%] animate-gradient-x
-                           py-3 font-semibold text-white
-                           shadow-[0_8px_30px_-8px_rgba(168,85,247,0.9)]
-                           hover:shadow-[0_12px_40px_-8px_rgba(217,70,239,1)]
-                           hover:-translate-y-0.5
-                           transition-all duration-300
-                           disabled:opacity-60 disabled:cursor-not-allowed"
+                className="mt-5 w-full rounded-xl
+                           bg-[var(--ink)] text-[var(--canvas)]
+                           py-2.5 font-medium text-sm
+                           transition-all
+                           hover:opacity-90 active:scale-[0.99]
+                           disabled:opacity-50 disabled:cursor-not-allowed
+                           inline-flex items-center justify-center gap-2"
               >
-                <span className="relative z-10 inline-flex items-center gap-2">
-                  <FiPlus />
-                  {submitting ? 'Adding…' : 'Add DJ to Board'}
-                </span>
-                <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+                <FiPlus />
+                {submitting ? 'Adding…' : 'Add DJ to Board'}
               </button>
             </form>
 
             <div className="mt-6">
-              <h2 className="text-lg font-semibold text-white/90 mb-3 flex items-center gap-2">
-                <FiUser className="text-purple-300" />
+              <h2 className="text-base font-semibold text-[var(--ink)] mb-3 flex items-center gap-2">
+                <FiUser className="text-[var(--ink-muted)]" />
                 Current DJs
-                <span className="text-neutral-500 font-normal text-sm">
+                <span className="text-[var(--ink-subtle)] font-normal text-sm">
                   ({list.length})
                 </span>
               </h2>
 
               {list.length === 0 ? (
-                <p className="text-neutral-500 text-sm px-1">
+                <p className="text-[var(--ink-subtle)] text-sm px-1">
                   No DJs on the board yet.
                 </p>
               ) : (
-                <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2 rounded-2xl scroll-hide">
+                <div className="space-y-2 max-h-[60vh] overflow-y-auto scrollbar-thin pr-2">
                   {list.map((dj) => (
                     <div
                       key={dj.id}
                       className="flex items-center gap-3 p-3 rounded-xl
-                                 bg-white/[0.03] backdrop-blur border border-white/10
-                                 hover:bg-white/[0.05] hover:border-white/20
-                                 transition-all"
+                                 bg-[var(--surface)] border border-[var(--hairline)]
+                                 hover:bg-[var(--surface-hover)]
+                                 transition-colors"
                     >
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate text-white/90">
+                        <p className="font-medium truncate text-[var(--ink)]">
                           {dj.stage_name}
                         </p>
                         <a
                           href={dj.music_link}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-xs text-purple-300/70 hover:text-purple-200 truncate block"
+                          className="text-xs text-[var(--ink-subtle)] hover:text-[var(--ink)] truncate block"
                         >
                           {dj.music_link}
                         </a>
                       </div>
-                      <span className="text-xs text-neutral-500 tabular-nums shrink-0">
+                      <span className="text-xs text-[var(--ink-subtle)] tabular-nums shrink-0">
                         {dj.vote_counts?.total_votes ?? 0} votes
                       </span>
                       <button
                         onClick={() => handleDelete(dj)}
                         disabled={deleting}
                         title="Remove DJ"
-                        className="p-2 rounded-lg text-neutral-500 hover:text-red-400
-                                   hover:bg-red-500/10 transition-colors shrink-0"
+                        className="p-2 rounded-lg text-[var(--ink-subtle)]
+                                   hover:text-red-500 hover:bg-red-500/10
+                                   transition-colors shrink-0"
                       >
                         <FiTrash2 />
                       </button>
@@ -306,22 +297,23 @@ export default function AdminPanel() {
           {/* ===================== RIGHT: QR batches ===================== */}
           <section className="min-w-0">
             <div
-              className="rounded-3xl p-6
-                         bg-white/[0.04] backdrop-blur-2xl
-                         border border-white/10
-                         shadow-[0_8px_40px_0_rgba(250,204,21,0.12),inset_0_1px_0_0_rgba(255,255,255,0.1)]"
+              className="rounded-2xl p-6
+                         bg-[var(--surface)] backdrop-blur-xl
+                         border border-[var(--hairline)]
+                         shadow-[0_20px_60px_-20px_rgba(0,0,0,0.4)]"
             >
-              <h2 className="text-lg font-semibold text-white/90 mb-1 flex items-center gap-2">
-                <FiGrid className="text-yellow-300" />
+              <h2 className="text-base font-semibold text-[var(--ink)] mb-1 flex items-center gap-2">
+                <FiGrid className="text-[var(--ink-muted)]" />
                 Generate Coin QR Batch
               </h2>
-              <p className="text-xs text-neutral-500 mb-5">
+              <p className="text-xs text-[var(--ink-subtle)] mb-5">
                 Type a club name and quantity. Each QR = one physical coin.
               </p>
 
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-1.5">
+                  <label className="block text-xs uppercase tracking-[0.15em]
+                                    text-[var(--ink-subtle)] mb-1.5">
                     Club name
                   </label>
                   <AdminInput
@@ -337,10 +329,11 @@ export default function AdminPanel() {
 
                   {clubs.length > 0 && (
                     <div className="mt-3 flex items-center gap-2 min-w-0">
-                      <span className="text-[10px] uppercase tracking-wider text-white/40 shrink-0">
+                      <span className="text-[10px] uppercase tracking-wider
+                                       text-[var(--ink-subtle)] shrink-0">
                         Reuse
                       </span>
-                      <div className="flex-1 min-w-0 flex gap-2 overflow-x-auto px-2 py-1.5 reuse-scroll">
+                      <div className="flex-1 min-w-0 flex gap-2 overflow-x-auto px-2 py-1.5 scrollbar-thin">
                         {clubs.map((c) => (
                           <button
                             key={c.id}
@@ -352,8 +345,9 @@ export default function AdminPanel() {
                               })
                             }
                             className="shrink-0 text-xs px-2.5 py-1 rounded-full
-                                       bg-white/[0.05] border border-white/10
-                                       text-white/70 hover:text-white hover:border-purple-400/40
+                                       bg-[var(--surface)] border border-[var(--hairline)]
+                                       text-[var(--ink-muted)] hover:text-[var(--ink)]
+                                       hover:bg-[var(--surface-hover)]
                                        transition-colors whitespace-nowrap"
                           >
                             {c.name}
@@ -365,9 +359,12 @@ export default function AdminPanel() {
                 </div>
 
                 <div>
-                  <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-1.5">
+                  <label className="block text-xs uppercase tracking-[0.15em]
+                                    text-[var(--ink-subtle)] mb-1.5">
                     Quantity{' '}
-                    <span className="text-white/30 normal-case">(1–500)</span>
+                    <span className="text-[var(--ink-subtle)]/70 normal-case">
+                      (1–500)
+                    </span>
                   </label>
                   <AdminInput
                     icon={<FiHash />}
@@ -383,7 +380,9 @@ export default function AdminPanel() {
               </div>
 
               {batchError && (
-                <p className="mt-3 text-red-300 text-sm bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">
+                <p className="mt-3 text-sm text-red-500 dark:text-red-300/90
+                              bg-red-500/[0.08] border border-red-500/20
+                              rounded-lg px-3 py-2">
                   {batchError}
                 </p>
               )}
@@ -393,63 +392,60 @@ export default function AdminPanel() {
                 disabled={
                   batchBusy || !batchForm.clubName.trim() || !batchForm.quantity
                 }
-                className="group relative mt-5 w-full overflow-hidden rounded-xl
-                           bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-400
-                           bg-[length:200%_100%] animate-gradient-x
-                           py-3 font-semibold text-black
-                           shadow-[0_8px_30px_-8px_rgba(250,204,21,0.9)]
-                           hover:shadow-[0_12px_40px_-8px_rgba(250,204,21,1)]
-                           hover:-translate-y-0.5
-                           transition-all duration-300
-                           disabled:opacity-50 disabled:cursor-not-allowed"
+                className="mt-5 w-full rounded-xl
+                           bg-[var(--ink)] text-[var(--canvas)]
+                           py-2.5 font-medium text-sm
+                           transition-all
+                           hover:opacity-90 active:scale-[0.99]
+                           disabled:opacity-50 disabled:cursor-not-allowed
+                           inline-flex items-center justify-center gap-2"
               >
-                <span className="relative z-10 inline-flex items-center gap-2">
-                  <FiGrid />
-                  {batchBusy ? 'Generating…' : 'Generate Batch'}
-                </span>
-                <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+                <FiGrid />
+                {batchBusy ? 'Generating…' : 'Generate Batch'}
               </button>
             </div>
 
             <div className="mt-6">
-              <h2 className="text-lg font-semibold text-white/90 mb-3 flex items-center gap-2">
-                <FiClock className="text-yellow-300" />
+              <h2 className="text-base font-semibold text-[var(--ink)] mb-3 flex items-center gap-2">
+                <FiClock className="text-[var(--ink-muted)]" />
                 Recent batches
-                <span className="text-neutral-500 font-normal text-sm">
+                <span className="text-[var(--ink-subtle)] font-normal text-sm">
                   ({batches.length})
                 </span>
               </h2>
 
               {batches.length === 0 ? (
-                <p className="text-neutral-500 text-sm px-1">
+                <p className="text-[var(--ink-subtle)] text-sm px-1">
                   No batches generated yet.
                 </p>
               ) : (
-                <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2">
+                <div className="space-y-2 max-h-[60vh] overflow-y-auto scrollbar-thin pr-2">
                   {batches.map((b) => (
                     <Link
                       key={b.id}
                       to={`/admin/batches/${b.id}`}
                       className="group flex items-center gap-3 p-3 rounded-xl
-                                 bg-white/[0.03] backdrop-blur border border-white/10
-                                 hover:bg-white/[0.05] hover:border-yellow-400/30
-                                 transition-all"
+                                 bg-[var(--surface)] border border-[var(--hairline)]
+                                 hover:bg-[var(--surface-hover)]
+                                 transition-colors"
                     >
-                      <div className="w-9 h-9 rounded-lg bg-yellow-400/15 border border-yellow-400/30 flex items-center justify-center shrink-0">
-                        <FiGrid className="text-yellow-300 text-sm" />
+                      <div className="w-9 h-9 rounded-lg
+                                      bg-[var(--surface-hover)] border border-[var(--hairline)]
+                                      flex items-center justify-center shrink-0">
+                        <FiGrid className="text-[var(--ink-muted)] text-sm" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate text-white/90">
+                        <p className="font-medium truncate text-[var(--ink)]">
                           {b.clubs?.name ?? '—'}
                         </p>
-                        <p className="text-[10px] text-neutral-500 tabular-nums">
+                        <p className="text-[10px] text-[var(--ink-subtle)] tabular-nums">
                           {new Date(b.created_at).toLocaleDateString()}
                         </p>
                       </div>
-                      <span className="text-xs text-neutral-400 tabular-nums shrink-0">
+                      <span className="text-xs text-[var(--ink-subtle)] tabular-nums shrink-0">
                         {b.quantity} codes
                       </span>
-                      <FiExternalLink className="text-neutral-600 group-hover:text-yellow-300 transition-colors shrink-0" />
+                      <FiExternalLink className="text-[var(--ink-subtle)] group-hover:text-[var(--ink)] transition-colors shrink-0" />
                     </Link>
                   ))}
                 </div>
@@ -466,18 +462,19 @@ function AdminInput({ icon, className = '', ...props }) {
   return (
     <div className="relative">
       {icon && (
-        <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40">
+        <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2
+                         text-[var(--ink-subtle)]">
           {icon}
         </span>
       )}
       <input
         {...props}
-        className={`w-full rounded-xl bg-white/[0.05] border border-white/10
-                    pl-11 pr-4 py-3 text-white placeholder-white/40
-                    outline-none backdrop-blur
+        className={`w-full rounded-xl
+                    bg-[var(--surface)] border border-[var(--hairline)]
+                    pl-11 pr-4 py-2.5 text-sm text-[var(--ink)] placeholder-[var(--ink-subtle)]
+                    outline-none
                     transition-all duration-200
-                    focus:border-purple-400/60 focus:bg-white/[0.08]
-                    focus:shadow-[0_0_0_3px_rgba(168,85,247,0.2)]
+                    focus:border-[var(--ink-subtle)] focus:bg-[var(--surface-hover)]
                     ${className}`}
       />
     </div>

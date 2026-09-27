@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { supabase } from './lib/supabaseClient';
 import { setUser, fetchProfile } from './features/auth/authSlice';
 import { useRealtime } from './hooks/useRealtime';
@@ -13,31 +13,25 @@ import GoldClaimPage from './features/coins/GoldClaimPage';
 import ShoutoutWall from './features/shoutouts/ShoutoutWall';
 import AdminPanel from './features/admin/AdminPanel';
 import BatchPrintPage from './features/admin/BatchPrintPage';
+import AdminGate from './features/admin/AdminGate';
 import WelcomeSplash from './shared/components/WelcomeSplash';
 
-function AdminOnly({ children }) {
-  const isAdmin = useSelector((s) => s.auth.profile?.is_admin === true);
-  if (!isAdmin) return <Navigate to="/" replace />;
-  return children;
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
 }
 
 function App() {
   const dispatch = useDispatch();
   const user = useSelector((s) => s.auth.user);
-  const profileLoaded = useSelector((s) => s.auth.profile !== null);
 
-  // Splash visibility
   const [showSplash, setShowSplash] = useState(false);
-
-  // Whether the initial auth check has completed. Without this,
-  // the app would briefly show "not logged in" on refresh.
   const [authChecked, setAuthChecked] = useState(false);
 
-  // Remember whether the user was logged in on app load.
-  // Prevents the splash from firing on a page refresh.
   const wasLoggedInAtLoad = useRef(false);
-
-  // Track the previous user id so we only fire on a genuine user change
   const prevUserIdRef = useRef(null);
 
   useEffect(() => {
@@ -57,21 +51,24 @@ function App() {
       dispatch(setUser(u));
       if (u) dispatch(fetchProfile(u.id));
 
-      // Show splash whenever a user signs in — every single time.
-      // Conditions:
-      //   1. The event is SIGNED_IN (Supabase fires this on login + signup)
-      //   2. There is a user id (not a sign-out)
-      //   3. The user was NOT already logged in when the app booted
-      //      (prevents splash on page refresh)
-      //   4. The user id is actually different from the previous one
-      //      (prevents splash on token refresh / duplicate events)
       if (
         event === 'SIGNED_IN' &&
         u &&
         !wasLoggedInAtLoad.current &&
         nextId !== prevUserIdRef.current
       ) {
-        setShowSplash(true);
+        // Don't show the party splash to admins.
+        // They need to reach /admin and enter a passcode; the splash just delays them.
+        // We can't reliably know `is_admin` yet at this instant, so we
+        // check the email domain OR a metadata flag if you set one.
+        // Simplest reliable check: skip the splash if the user is heading to /admin.
+        const goingToAdmin =
+          typeof window !== 'undefined' &&
+          window.location.pathname.startsWith('/admin');
+
+        if (!goingToAdmin) {
+          setShowSplash(true);
+        }
       }
 
       wasLoggedInAtLoad.current = !!u;
@@ -83,80 +80,54 @@ function App() {
 
   useRealtime();
 
-  // Don't render routes until auth has been checked
   if (!authChecked) {
     return <div className="min-h-screen bg-[var(--canvas)]" />;
   }
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
+
       {showSplash && (
         <WelcomeSplash onDone={() => setShowSplash(false)} duration={3000} />
       )}
 
-      {user && <Navbar />}
+      <Navbar />
 
       <Routes>
-        <Route path="/auth" element={<AuthPage />} />
+        {/* Public — anyone can view */}
+        <Route path="/" element={<CoinLeaderboard />} />
+        <Route path="/djs" element={<Leaderboard />} />
+        <Route path="/shoutouts" element={<ShoutoutWall />} />
+
+        {/* Public — but the claim form requires login (handled inside) */}
         <Route path="/gold/:id" element={<GoldClaimPage />} />
 
+        {/* Auth page — reached only when needed */}
         <Route
-          path="/"
-          element={
-            user ? (
-              profileLoaded ? <CoinLeaderboard /> : null
-            ) : (
-              <Navigate to="/auth" />
-            )
-          }
+          path="/auth"
+          element={user ? <Navigate to="/" replace /> : <AuthPage />}
         />
 
-        <Route
-          path="/djs"
-          element={
-            user ? (
-              profileLoaded ? <Leaderboard /> : null
-            ) : (
-              <Navigate to="/auth" />
-            )
-          }
-        />
-
-        <Route
-          path="/shoutouts"
-          element={user ? <ShoutoutWall /> : <Navigate to="/auth" />}
-        />
-
+        {/* Admin — passcode-gated */}
         <Route
           path="/admin"
           element={
-            user ? (
-              profileLoaded ? (
-                <AdminOnly>
-                  <AdminPanel />
-                </AdminOnly>
-              ) : null
-            ) : (
-              <Navigate to="/auth" />
-            )
+            <AdminGate>
+              <AdminPanel />
+            </AdminGate>
           }
         />
-
         <Route
           path="/admin/batches/:id"
           element={
-            user ? (
-              profileLoaded ? (
-                <AdminOnly>
-                  <BatchPrintPage />
-                </AdminOnly>
-              ) : null
-            ) : (
-              <Navigate to="/auth" />
-            )
+            <AdminGate>
+              <BatchPrintPage />
+            </AdminGate>
           }
         />
 
+        {/* Legacy redirects */}
         <Route path="/coins/leaderboard" element={<Navigate to="/" replace />} />
         <Route path="/coins" element={<Navigate to="/" replace />} />
         <Route path="/submit" element={<Navigate to="/" replace />} />

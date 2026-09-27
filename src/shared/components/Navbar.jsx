@@ -3,7 +3,6 @@ import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   FiLogOut,
-  FiShield,
   FiHeadphones,
   FiAward,
   FiTrendingUp,
@@ -12,6 +11,7 @@ import {
   FiX,
   FiSun,
   FiMoon,
+  FiLogIn,
 } from 'react-icons/fi';
 import { FaCoins } from 'react-icons/fa';
 import { signOut } from '../../features/auth/authSlice';
@@ -21,7 +21,8 @@ export default function Navbar() {
   const dispatch = useDispatch();
   const location = useLocation();
   const profile = useSelector((s) => s.auth.profile);
-  const isAdmin = profile?.is_admin === true;
+  const user = useSelector((s) => s.auth.user);
+  const isLoggedIn = !!user;
   const { theme, toggle } = useTheme();
 
   const [open, setOpen] = useState(false);
@@ -63,12 +64,6 @@ export default function Navbar() {
         <FiMic className="text-base" />
         Shoutouts
       </NavLink>
-      {isAdmin && (
-        <NavLink to="/admin" className={linkClass}>
-          <FiShield className="text-base" />
-          Admin
-        </NavLink>
-      )}
     </>
   );
 
@@ -105,24 +100,43 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-1">{nav}</div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <span className="inline-flex items-center gap-1.5 rounded-full
-                             bg-[var(--surface)] border border-[var(--hairline)]
-                             px-2.5 sm:px-3 py-1
-                             text-xs sm:text-sm font-medium tabular-nums text-[var(--ink-muted)]">
-              <FaCoins className="text-[11px] text-yellow-500/90" />
-              {profile?.coin_balance ?? 0}
-            </span>
+            {isLoggedIn ? (
+              <>
+                <span className="inline-flex items-center gap-1.5 rounded-full
+                                 bg-[var(--surface)] border border-[var(--hairline)]
+                                 px-2.5 sm:px-3 py-1
+                                 text-xs sm:text-sm font-medium tabular-nums text-[var(--ink-muted)]">
+                  <FaCoins className="text-[11px] text-yellow-500/90" />
+                  {profile?.coin_balance ?? 0}
+                </span>
 
-            <div className="hidden md:block">{themeButton}</div>
+                <div className="hidden md:block">{themeButton}</div>
 
-            <button
-              onClick={() => dispatch(signOut())}
-              className="hidden md:inline-flex items-center gap-1.5 text-sm
-                         text-[var(--ink-subtle)] hover:text-[var(--ink)] transition-colors"
-            >
-              <FiLogOut />
-              Logout
-            </button>
+                <button
+                  onClick={() => dispatch(signOut())}
+                  className="hidden md:inline-flex items-center gap-1.5 text-sm
+                             text-[var(--ink-subtle)] hover:text-[var(--ink)] transition-colors"
+                >
+                  <FiLogOut />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="hidden md:block">{themeButton}</div>
+
+                <Link
+                  to={`/auth?next=${encodeURIComponent(location.pathname)}`}
+                  className="hidden md:inline-flex items-center gap-1.5
+                             rounded-xl px-3 py-2 text-sm font-medium
+                             bg-[var(--ink)] text-[var(--canvas)]
+                             hover:opacity-90 transition-opacity"
+                >
+                  <FiLogIn />
+                  Sign in
+                </Link>
+              </>
+            )}
 
             <button
               type="button"
@@ -181,21 +195,37 @@ export default function Navbar() {
                 </span>
                 {themeButton}
               </div>
-              <button
-                onClick={() => {
-                  setOpen(false);
-                  dispatch(signOut());
-                }}
-                className="w-full inline-flex items-center justify-center gap-2
-                           px-3 py-2.5 rounded-lg
-                           border border-[var(--hairline)] bg-[var(--surface)]
-                           text-sm font-medium text-[var(--ink-muted)]
-                           hover:text-[var(--ink)] hover:bg-[var(--surface-hover)]
-                           transition-colors"
-              >
-                <FiLogOut />
-                Logout
-              </button>
+
+              {isLoggedIn ? (
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    dispatch(signOut());
+                  }}
+                  className="w-full inline-flex items-center justify-center gap-2
+                             px-3 py-2.5 rounded-lg
+                             border border-[var(--hairline)] bg-[var(--surface)]
+                             text-sm font-medium text-[var(--ink-muted)]
+                             hover:text-[var(--ink)] hover:bg-[var(--surface-hover)]
+                             transition-colors"
+                >
+                  <FiLogOut />
+                  Logout
+                </button>
+              ) : (
+                <Link
+                  to={`/auth?next=${encodeURIComponent(location.pathname)}`}
+                  onClick={() => setOpen(false)}
+                  className="w-full inline-flex items-center justify-center gap-2
+                             px-3 py-2.5 rounded-lg
+                             bg-[var(--ink)] text-[var(--canvas)]
+                             text-sm font-medium
+                             hover:opacity-90 transition-opacity"
+                >
+                  <FiLogIn />
+                  Sign in
+                </Link>
+              )}
             </div>
           </div>
         </div>

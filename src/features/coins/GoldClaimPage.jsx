@@ -11,6 +11,8 @@ import {
   FiAward,
   FiCamera,
   FiRefreshCw,
+  FiLogIn,
+  FiLock,
 } from 'react-icons/fi';
 import { FaCoins } from 'react-icons/fa';
 import {
@@ -40,15 +42,13 @@ export default function GoldClaimPage() {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
+  // Fetch the coin as soon as the page loads — regardless of auth state
   useEffect(() => {
-    if (!user) {
-      navigate(`/auth?next=/gold/${id}`, { replace: true });
-      return;
-    }
-    dispatch(fetchCoinByToken(id));
+    if (id) dispatch(fetchCoinByToken(id));
     return () => dispatch(resetClaim());
-  }, [dispatch, id, user, navigate]);
+  }, [dispatch, id]);
 
+  // Stop camera stream on unmount
   useEffect(() => {
     return () => {
       if (streamRef.current) {
@@ -132,7 +132,7 @@ export default function GoldClaimPage() {
   // ----------------------------------------------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (tooManyWords) return;
+    if (tooManyWords || !user) return;
 
     let photoUrl = null;
 
@@ -152,48 +152,70 @@ export default function GoldClaimPage() {
     dispatch(claimCoin({ token: id, shoutout, photoUrl }));
   };
 
+  const goToAuth = () => {
+    navigate(`/auth?next=/gold/${id}`);
+  };
+
+  // ----------------------------------------------------------
+  // Loading
+  // ----------------------------------------------------------
   if (coinLoading) {
     return (
       <Shell>
-        <p className="text-neutral-400 text-center">Checking coin…</p>
+        <p className="text-[var(--ink-subtle)] text-center">Checking coin…</p>
       </Shell>
     );
   }
 
-  if (coinError === 'invalid_token') {
+  // ----------------------------------------------------------
+  // Invalid token
+  // ----------------------------------------------------------
+  if (coinError === 'invalid_token' || (!coin && !coinLoading)) {
     return (
       <Shell>
         <div className="text-center">
-          <FiAlertTriangle className="mx-auto text-5xl text-red-400 mb-4" />
-          <h2 className="text-2xl font-extrabold text-white mb-2">
+          <FiAlertTriangle className="mx-auto text-4xl text-red-500 mb-4" />
+          <h2 className="text-xl font-semibold text-[var(--ink)] mb-2">
             Invalid coin
           </h2>
-          <p className="text-white/50 text-sm">
+          <p className="text-[var(--ink-subtle)] text-sm mb-6">
             This QR doesn't match any coin we issued.
           </p>
+          <Link
+            to="/"
+            className="inline-flex items-center gap-1.5 text-sm
+                       text-[var(--ink-muted)] hover:text-[var(--ink)]"
+          >
+            <FiAward />
+            Back to leaderboard
+          </Link>
         </div>
       </Shell>
     );
   }
 
+  // ----------------------------------------------------------
+  // Already claimed
+  // ----------------------------------------------------------
   if (coin?.claimed_by) {
     return (
       <Shell>
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-500/15 border border-red-500/40 mb-4">
-            <FiX className="text-red-400 text-3xl" />
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full
+                          bg-red-500/10 border border-red-500/30 mb-4">
+            <FiX className="text-red-500 text-2xl" />
           </div>
-          <h2 className="text-2xl font-extrabold text-white mb-2">
+          <h2 className="text-xl font-semibold text-[var(--ink)] mb-2">
             Coin already used
           </h2>
-          <p className="text-white/50 text-sm mb-6">
+          <p className="text-[var(--ink-subtle)] text-sm mb-6">
             This QR was claimed on{' '}
-            {new Date(coin.claimed_at).toLocaleDateString()}. It can't be
-            used again.
+            {new Date(coin.claimed_at).toLocaleDateString()}. It can't be used again.
           </p>
           <Link
-            to="/coins/leaderboard"
-            className="inline-flex items-center gap-1.5 text-sm text-purple-300 hover:text-purple-200"
+            to="/"
+            className="inline-flex items-center gap-1.5 text-sm
+                       text-[var(--ink-muted)] hover:text-[var(--ink)]"
           >
             <FiAward />
             See the leaderboard
@@ -203,19 +225,23 @@ export default function GoldClaimPage() {
     );
   }
 
+  // ----------------------------------------------------------
+  // Success state
+  // ----------------------------------------------------------
   if (claimResult) {
     return (
       <Shell>
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/15 border border-green-500/40 mb-4 shadow-[0_0_30px_-6px_rgba(34,197,94,0.7)]">
-            <FiCheck className="text-green-400 text-3xl" />
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full
+                          bg-green-500/10 border border-green-500/30 mb-4">
+            <FiCheck className="text-green-500 text-2xl" />
           </div>
-          <h2 className="text-2xl font-extrabold text-white mb-1">
+          <h2 className="text-xl font-semibold text-[var(--ink)] mb-1">
             Coin claimed!
           </h2>
-          <p className="text-white/60 text-sm mb-6">
+          <p className="text-[var(--ink-muted)] text-sm mb-6">
             You now have{' '}
-            <span className="text-yellow-300 font-semibold tabular-nums">
+            <span className="text-yellow-600 dark:text-yellow-400 font-semibold tabular-nums">
               {claimResult.new_total}
             </span>{' '}
             coin{claimResult.new_total === 1 ? '' : 's'}.
@@ -226,30 +252,37 @@ export default function GoldClaimPage() {
               <img
                 src={photoPreview}
                 alt="Your selfie"
-                className="w-24 h-24 rounded-2xl object-cover border border-white/15 shadow-[0_4px_30px_-8px_rgba(168,85,247,0.7)]"
+                className="w-24 h-24 rounded-2xl object-cover
+                           border border-[var(--hairline)]"
               />
             </div>
           )}
 
           {shoutout && (
-            <div className="mb-6 rounded-xl bg-white/[0.04] border border-white/10 p-4 text-left">
-              <p className="text-[10px] uppercase tracking-[0.15em] text-white/40 mb-1">
+            <div className="mb-6 rounded-xl p-4 text-left
+                            bg-[var(--surface)] border border-[var(--hairline)]">
+              <p className="text-[10px] uppercase tracking-[0.15em] text-[var(--ink-subtle)] mb-1">
                 Your shoutout
               </p>
-              <p className="text-white/90 italic">"{shoutout}"</p>
+              <p className="text-[var(--ink-muted)] italic">"{shoutout}"</p>
             </div>
           )}
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
-              to="/coins/leaderboard"
-              className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 font-medium text-white"
+              to="/"
+              className="px-5 py-2.5 rounded-xl text-sm font-medium
+                         bg-[var(--ink)] text-[var(--canvas)]
+                         hover:opacity-90 transition-opacity"
             >
               View Leaderboard
             </Link>
             <Link
               to="/shoutouts"
-              className="px-5 py-2.5 rounded-xl bg-white/[0.05] border border-white/10 hover:bg-white/[0.08] font-medium text-white"
+              className="px-5 py-2.5 rounded-xl text-sm font-medium
+                         bg-[var(--surface)] border border-[var(--hairline)]
+                         text-[var(--ink-muted)] hover:text-[var(--ink)]
+                         hover:bg-[var(--surface-hover)] transition-colors"
             >
               See Shoutouts
             </Link>
@@ -259,20 +292,88 @@ export default function GoldClaimPage() {
     );
   }
 
+  // ----------------------------------------------------------
+  // Not logged in — show sign-in prompt instead of the form
+  // ----------------------------------------------------------
+  if (!user) {
+    return (
+      <Shell>
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl
+                          bg-[var(--surface)] border border-[var(--hairline)] mb-4">
+            <FaCoins className="text-yellow-500 text-2xl" />
+          </div>
+          <h1 className="text-xl font-semibold tracking-tight text-[var(--ink)]">
+            A coin is waiting for you
+          </h1>
+          <p className="mt-1.5 text-sm text-[var(--ink-subtle)]">
+            {coin?.clubs?.name ? (
+              <>
+                At{' '}
+                <span className="text-[var(--ink-muted)] font-medium">
+                  {coin.clubs.name}
+                </span>
+              </>
+            ) : (
+              'Sign in to claim it and add your point to the leaderboard.'
+            )}
+          </p>
+        </div>
+
+        <div className="rounded-2xl p-4 mb-5 text-center
+                        bg-[var(--surface)] border border-[var(--hairline)]">
+          <div className="inline-flex items-center gap-2 text-xs
+                          text-[var(--ink-subtle)]">
+            <FiLock className="text-[11px]" />
+            <span>Claiming requires an account</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={goToAuth}
+          className="w-full rounded-xl py-3 text-sm font-medium
+                     bg-[var(--ink)] text-[var(--canvas)]
+                     hover:opacity-90 active:scale-[0.99]
+                     transition-all
+                     inline-flex items-center justify-center gap-2"
+        >
+          <FiLogIn />
+          Sign in to claim
+        </button>
+
+        <p className="mt-4 text-center text-xs text-[var(--ink-subtle)]">
+          New here?{' '}
+          <button
+            type="button"
+            onClick={goToAuth}
+            className="text-[var(--ink-muted)] hover:text-[var(--ink)] underline-offset-2 hover:underline"
+          >
+            Create an account
+          </button>
+        </p>
+      </Shell>
+    );
+  }
+
+  // ----------------------------------------------------------
+  // Logged in — show the claim form
+  // ----------------------------------------------------------
   return (
     <Shell>
       <div className="text-center mb-6">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400/20 to-amber-500/10 border border-yellow-400/30 mb-4 shadow-[0_0_24px_-6px_rgba(250,204,21,0.6)]">
-          <FaCoins className="text-yellow-300 text-2xl" />
+        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl
+                        bg-[var(--surface)] border border-[var(--hairline)] mb-4">
+          <FaCoins className="text-yellow-500 text-2xl" />
         </div>
-        <h1 className="text-2xl font-extrabold tracking-tight">
-          <span className="shimmer-text">Claim your coin</span>
+        <h1 className="text-xl font-semibold tracking-tight text-[var(--ink)]">
+          Claim your coin
         </h1>
-        <p className="mt-1 text-sm text-white/50">
+        <p className="mt-1.5 text-sm text-[var(--ink-subtle)]">
           {coin?.clubs?.name ? (
             <>
               At{' '}
-              <span className="text-purple-300 font-medium">
+              <span className="text-[var(--ink-muted)] font-medium">
                 {coin.clubs.name}
               </span>
             </>
@@ -283,21 +384,27 @@ export default function GoldClaimPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Claiming as */}
         <div>
-          <label className="text-xs uppercase tracking-[0.15em] text-white/50 mb-1.5 inline-flex items-center gap-1.5">
+          <label className="text-xs uppercase tracking-[0.15em] text-[var(--ink-subtle)] mb-1.5 inline-flex items-center gap-1.5">
             <FiUser />
             Claiming as
           </label>
-          <div className="w-full rounded-xl bg-white/[0.03] border border-white/10 px-4 py-3 text-white/80 flex items-center justify-between gap-3">
-            <span className="truncate">{profile?.username ?? '—'}</span>
-            <span className="text-[10px] uppercase tracking-wider text-white/30 shrink-0">
+          <div className="w-full rounded-xl px-4 py-3 flex items-center justify-between gap-3
+                          bg-[var(--surface)] border border-[var(--hairline)]">
+            <span className="truncate text-[var(--ink)]">
+              {profile?.username ?? '—'}
+            </span>
+            <span className="text-[10px] uppercase tracking-wider
+                             text-[var(--ink-subtle)] shrink-0">
               Locked
             </span>
           </div>
         </div>
 
+        {/* Selfie */}
         <div>
-          <label className="text-xs uppercase tracking-[0.15em] text-white/50 mb-1.5 inline-flex items-center gap-1.5">
+          <label className="text-xs uppercase tracking-[0.15em] text-[var(--ink-subtle)] mb-1.5 inline-flex items-center gap-1.5">
             <FiCamera />
             Selfie (optional)
           </label>
@@ -306,7 +413,12 @@ export default function GoldClaimPage() {
             <button
               type="button"
               onClick={openCamera}
-              className="w-full rounded-xl border border-dashed border-white/15 bg-white/[0.02] hover:bg-white/[0.05] hover:border-purple-400/40 py-4 text-white/60 hover:text-white/90 transition-all flex items-center justify-center gap-2"
+              className="w-full rounded-xl py-4 text-sm
+                         border border-dashed border-[var(--hairline)]
+                         bg-[var(--surface)] hover:bg-[var(--surface-hover)]
+                         text-[var(--ink-muted)] hover:text-[var(--ink)]
+                         transition-colors
+                         flex items-center justify-center gap-2"
             >
               <FiCamera />
               Take a selfie
@@ -314,7 +426,7 @@ export default function GoldClaimPage() {
           )}
 
           {cameraOpen && (
-            <div className="rounded-xl overflow-hidden border border-white/15 bg-black relative">
+            <div className="rounded-xl overflow-hidden border border-[var(--hairline)] bg-black relative">
               <video
                 ref={videoRef}
                 autoPlay
@@ -326,7 +438,10 @@ export default function GoldClaimPage() {
                 <button
                   type="button"
                   onClick={capturePhoto}
-                  className="flex-1 rounded-lg bg-gradient-to-r from-purple-500 to-fuchsia-500 py-2.5 font-semibold text-white inline-flex items-center justify-center gap-1.5"
+                  className="flex-1 rounded-lg py-2.5 text-sm font-medium
+                             bg-[var(--ink)] text-[var(--canvas)]
+                             inline-flex items-center justify-center gap-1.5
+                             hover:opacity-90 transition-opacity"
                 >
                   <FiCamera />
                   Capture
@@ -334,7 +449,10 @@ export default function GoldClaimPage() {
                 <button
                   type="button"
                   onClick={closeCamera}
-                  className="px-4 rounded-lg bg-white/[0.06] border border-white/10 text-white/80 hover:text-white inline-flex items-center justify-center"
+                  className="px-4 rounded-lg
+                             bg-[var(--surface)] border border-[var(--hairline)]
+                             text-[var(--ink-muted)] hover:text-[var(--ink)]
+                             inline-flex items-center justify-center transition-colors"
                   aria-label="Close camera"
                 >
                   <FiX />
@@ -348,13 +466,14 @@ export default function GoldClaimPage() {
               <img
                 src={photoPreview}
                 alt="Preview"
-                className="w-20 h-20 rounded-xl object-cover border border-white/15"
+                className="w-20 h-20 rounded-xl object-cover border border-[var(--hairline)]"
               />
               <div className="flex flex-col gap-2">
                 <button
                   type="button"
                   onClick={openCamera}
-                  className="text-xs text-purple-300 hover:text-purple-200 inline-flex items-center gap-1.5"
+                  className="text-xs text-[var(--ink-muted)] hover:text-[var(--ink)]
+                             inline-flex items-center gap-1.5"
                 >
                   <FiRefreshCw />
                   Retake
@@ -362,7 +481,8 @@ export default function GoldClaimPage() {
                 <button
                   type="button"
                   onClick={clearPhoto}
-                  className="text-xs text-white/40 hover:text-white/70 inline-flex items-center gap-1.5"
+                  className="text-xs text-[var(--ink-subtle)] hover:text-[var(--ink)]
+                             inline-flex items-center gap-1.5"
                 >
                   <FiX />
                   Remove
@@ -372,21 +492,24 @@ export default function GoldClaimPage() {
           )}
 
           {cameraError && (
-            <p className="mt-2 text-red-300 text-xs bg-red-500/10 border border-red-500/30 rounded-lg px-3 py-2">
+            <p className="mt-2 text-xs text-red-500 dark:text-red-300/90
+                          bg-red-500/[0.08] border border-red-500/20
+                          rounded-lg px-3 py-2">
               {cameraError}
             </p>
           )}
         </div>
 
+        {/* Shoutout */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.15em] text-white/50">
+            <label className="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.15em] text-[var(--ink-subtle)]">
               <FiMic />
               Shoutout (optional)
             </label>
             <span
               className={`text-[10px] tabular-nums ${
-                tooManyWords ? 'text-red-400' : 'text-white/40'
+                tooManyWords ? 'text-red-500' : 'text-[var(--ink-subtle)]'
               }`}
             >
               {wordCount}/15 words
@@ -397,12 +520,19 @@ export default function GoldClaimPage() {
             onChange={(e) => setShoutout(e.target.value)}
             placeholder="Big up the whole crew — 15 words max"
             rows={3}
-            className="w-full rounded-xl bg-white/[0.05] border border-white/10 px-4 py-3 text-white placeholder-white/40 outline-none backdrop-blur resize-none transition-all duration-200 focus:border-purple-400/60 focus:bg-white/[0.08] focus:shadow-[0_0_0_3px_rgba(168,85,247,0.2)]"
+            className="w-full rounded-xl px-4 py-3 text-sm
+                       bg-[var(--surface)] border border-[var(--hairline)]
+                       text-[var(--ink)] placeholder-[var(--ink-subtle)]
+                       outline-none resize-none
+                       transition-all duration-200
+                       focus:border-[var(--ink-subtle)] focus:bg-[var(--surface-hover)]"
           />
         </div>
 
         {claimError && (
-          <div className="text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3">
+          <div className="text-sm text-red-500 dark:text-red-300/90
+                          bg-red-500/[0.08] border border-red-500/20
+                          rounded-xl px-4 py-3">
             {claimError === 'already_claimed'
               ? 'Someone already claimed this coin.'
               : claimError}
@@ -412,17 +542,19 @@ export default function GoldClaimPage() {
         <button
           type="submit"
           disabled={claiming || uploadingPhoto || tooManyWords}
-          className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-purple-500 bg-[length:200%_100%] animate-gradient-x py-3 font-semibold text-white shadow-[0_8px_30px_-8px_rgba(168,85,247,0.9)] transition-all duration-300 hover:shadow-[0_12px_40px_-8px_rgba(217,70,239,1)] hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-full rounded-xl py-3 text-sm font-medium
+                     bg-[var(--ink)] text-[var(--canvas)]
+                     hover:opacity-90 active:scale-[0.99]
+                     transition-all
+                     disabled:opacity-50 disabled:cursor-not-allowed
+                     inline-flex items-center justify-center gap-2"
         >
-          <span className="relative z-10 inline-flex items-center gap-2">
-            <FiEdit3 />
-            {uploadingPhoto
-              ? 'Uploading selfie…'
-              : claiming
-              ? 'Claiming…'
-              : 'Claim Coin'}
-          </span>
-          <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+          <FiEdit3 />
+          {uploadingPhoto
+            ? 'Uploading selfie…'
+            : claiming
+            ? 'Claiming…'
+            : 'Claim Coin'}
         </button>
       </form>
     </Shell>
@@ -431,23 +563,18 @@ export default function GoldClaimPage() {
 
 function Shell({ children }) {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#08060f] flex items-center justify-center px-4 py-10">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-40 -left-40 w-[32rem] h-[32rem] rounded-full bg-purple-600/25 blur-[130px] animate-pulse-slow" />
-        <div className="absolute top-1/3 -right-40 w-[30rem] h-[30rem] rounded-full bg-fuchsia-500/20 blur-[130px] animate-pulse-slower" />
-        <div className="absolute bottom-0 left-1/3 w-[24rem] h-[24rem] rounded-full bg-cyan-400/15 blur-[130px] animate-float" />
+    <div className="relative min-h-screen overflow-hidden bg-[var(--canvas)]
+                    flex items-center justify-center px-4 py-10">
+      {/* Soft glow — dark mode only */}
+      <div className="pointer-events-none absolute inset-0 hidden dark:block">
+        <div className="absolute -top-40 -left-40 w-[32rem] h-[32rem] rounded-full bg-purple-600/15 blur-[130px] animate-pulse-slow" />
+        <div className="absolute top-1/3 -right-40 w-[30rem] h-[30rem] rounded-full bg-fuchsia-500/10 blur-[130px] animate-pulse-slower" />
       </div>
 
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.05]"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)',
-          backgroundSize: '44px 44px',
-        }}
-      />
-
-      <div className="relative w-full max-w-md rounded-3xl p-8 bg-white/[0.04] backdrop-blur-2xl border border-white/10 shadow-[0_8px_40px_0_rgba(139,92,246,0.25),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
+      <div className="relative w-full max-w-md rounded-2xl p-7 sm:p-8
+                      bg-[var(--surface)] backdrop-blur-xl
+                      border border-[var(--hairline)]
+                      shadow-[0_20px_60px_-20px_rgba(0,0,0,0.5)]">
         {children}
       </div>
     </div>

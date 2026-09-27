@@ -46,7 +46,8 @@ function App() {
     <BrowserRouter>
       {user && <Navbar />}
       <Routes>
-        <Route path="/auth" element={user ? <Navigate to="/" /> : <AuthPage />} />
+        {/* AuthPage handles its own redirect (respects ?next=) */}
+        <Route path="/auth" element={<AuthPage />} />
 
         {/* Public claim page — auth redirect handled inside the component */}
         <Route path="/gold/:id" element={<GoldClaimPage />} />
@@ -54,7 +55,11 @@ function App() {
         <Route
           path="/"
           element={
-            user ? (profileLoaded ? <Leaderboard /> : null) : <Navigate to="/auth" />
+            user ? (
+              profileLoaded ? <Leaderboard /> : null
+            ) : (
+              <Navigate to="/auth" />
+            )
           }
         />
 

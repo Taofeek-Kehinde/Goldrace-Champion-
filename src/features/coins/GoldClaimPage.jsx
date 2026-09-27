@@ -21,7 +21,7 @@ import {
 } from './coinClaimSlice';
 
 export default function GoldClaimPage() {
-  const { token } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -42,14 +42,13 @@ export default function GoldClaimPage() {
 
   useEffect(() => {
     if (!user) {
-      navigate(`/auth?next=/gold/${token}`, { replace: true });
+      navigate(`/auth?next=/gold/${id}`, { replace: true });
       return;
     }
-    dispatch(fetchCoinByToken(token));
+    dispatch(fetchCoinByToken(id));
     return () => dispatch(resetClaim());
-  }, [dispatch, token, user, navigate]);
+  }, [dispatch, id, user, navigate]);
 
-  // Cleanup camera stream on unmount
   useEffect(() => {
     return () => {
       if (streamRef.current) {
@@ -73,7 +72,6 @@ export default function GoldClaimPage() {
       });
       streamRef.current = stream;
       setCameraOpen(true);
-      // Wait for the video element to exist
       setTimeout(() => {
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -107,7 +105,6 @@ export default function GoldClaimPage() {
     canvas.height = 480;
     const ctx = canvas.getContext('2d');
 
-    // Center-crop to square
     const sx = (video.videoWidth - size) / 2;
     const sy = (video.videoHeight - size) / 2;
     ctx.drawImage(video, sx, sy, size, size, 0, 0, 480, 480);
@@ -148,15 +145,13 @@ export default function GoldClaimPage() {
       if (uploadSelfie.fulfilled.match(up)) {
         photoUrl = up.payload.publicUrl;
       } else {
-        // Continue without photo rather than blocking the claim
         photoUrl = null;
       }
     }
 
-    dispatch(claimCoin({ token, shoutout, photoUrl }));
+    dispatch(claimCoin({ token: id, shoutout, photoUrl }));
   };
 
-  // ---------- Loading ----------
   if (coinLoading) {
     return (
       <Shell>
@@ -165,7 +160,6 @@ export default function GoldClaimPage() {
     );
   }
 
-  // ---------- Invalid token ----------
   if (coinError === 'invalid_token') {
     return (
       <Shell>
@@ -182,7 +176,6 @@ export default function GoldClaimPage() {
     );
   }
 
-  // ---------- Already claimed ----------
   if (coin?.claimed_by) {
     return (
       <Shell>
@@ -210,7 +203,6 @@ export default function GoldClaimPage() {
     );
   }
 
-  // ---------- Success ----------
   if (claimResult) {
     return (
       <Shell>
@@ -267,7 +259,6 @@ export default function GoldClaimPage() {
     );
   }
 
-  // ---------- Form ----------
   return (
     <Shell>
       <div className="text-center mb-6">
@@ -280,7 +271,10 @@ export default function GoldClaimPage() {
         <p className="mt-1 text-sm text-white/50">
           {coin?.clubs?.name ? (
             <>
-              At <span className="text-purple-300 font-medium">{coin.clubs.name}</span>
+              At{' '}
+              <span className="text-purple-300 font-medium">
+                {coin.clubs.name}
+              </span>
             </>
           ) : (
             'Write a shoutout and lock in your rank.'
@@ -289,14 +283,12 @@ export default function GoldClaimPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Locked identity */}
         <div>
-          <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-1.5 inline-flex items-center gap-1.5">
+          <label className="text-xs uppercase tracking-[0.15em] text-white/50 mb-1.5 inline-flex items-center gap-1.5">
             <FiUser />
             Claiming as
           </label>
-          <div className="w-full rounded-xl bg-white/[0.03] border border-white/10
-                          px-4 py-3 text-white/80 flex items-center justify-between gap-3">
+          <div className="w-full rounded-xl bg-white/[0.03] border border-white/10 px-4 py-3 text-white/80 flex items-center justify-between gap-3">
             <span className="truncate">{profile?.username ?? '—'}</span>
             <span className="text-[10px] uppercase tracking-wider text-white/30 shrink-0">
               Locked
@@ -304,9 +296,8 @@ export default function GoldClaimPage() {
           </div>
         </div>
 
-        {/* Selfie */}
         <div>
-          <label className="block text-xs uppercase tracking-[0.15em] text-white/50 mb-1.5 inline-flex items-center gap-1.5">
+          <label className="text-xs uppercase tracking-[0.15em] text-white/50 mb-1.5 inline-flex items-center gap-1.5">
             <FiCamera />
             Selfie (optional)
           </label>
@@ -315,10 +306,7 @@ export default function GoldClaimPage() {
             <button
               type="button"
               onClick={openCamera}
-              className="w-full rounded-xl border border-dashed border-white/15
-                         bg-white/[0.02] hover:bg-white/[0.05] hover:border-purple-400/40
-                         py-4 text-white/60 hover:text-white/90
-                         transition-all flex items-center justify-center gap-2"
+              className="w-full rounded-xl border border-dashed border-white/15 bg-white/[0.02] hover:bg-white/[0.05] hover:border-purple-400/40 py-4 text-white/60 hover:text-white/90 transition-all flex items-center justify-center gap-2"
             >
               <FiCamera />
               Take a selfie
@@ -338,9 +326,7 @@ export default function GoldClaimPage() {
                 <button
                   type="button"
                   onClick={capturePhoto}
-                  className="flex-1 rounded-lg bg-gradient-to-r from-purple-500 to-fuchsia-500
-                             py-2.5 font-semibold text-white
-                             inline-flex items-center justify-center gap-1.5"
+                  className="flex-1 rounded-lg bg-gradient-to-r from-purple-500 to-fuchsia-500 py-2.5 font-semibold text-white inline-flex items-center justify-center gap-1.5"
                 >
                   <FiCamera />
                   Capture
@@ -348,9 +334,7 @@ export default function GoldClaimPage() {
                 <button
                   type="button"
                   onClick={closeCamera}
-                  className="px-4 rounded-lg bg-white/[0.06] border border-white/10
-                             text-white/80 hover:text-white
-                             inline-flex items-center justify-center"
+                  className="px-4 rounded-lg bg-white/[0.06] border border-white/10 text-white/80 hover:text-white inline-flex items-center justify-center"
                   aria-label="Close camera"
                 >
                   <FiX />
@@ -370,8 +354,7 @@ export default function GoldClaimPage() {
                 <button
                   type="button"
                   onClick={openCamera}
-                  className="text-xs text-purple-300 hover:text-purple-200
-                             inline-flex items-center gap-1.5"
+                  className="text-xs text-purple-300 hover:text-purple-200 inline-flex items-center gap-1.5"
                 >
                   <FiRefreshCw />
                   Retake
@@ -379,8 +362,7 @@ export default function GoldClaimPage() {
                 <button
                   type="button"
                   onClick={clearPhoto}
-                  className="text-xs text-white/40 hover:text-white/70
-                             inline-flex items-center gap-1.5"
+                  className="text-xs text-white/40 hover:text-white/70 inline-flex items-center gap-1.5"
                 >
                   <FiX />
                   Remove
@@ -396,7 +378,6 @@ export default function GoldClaimPage() {
           )}
         </div>
 
-        {/* Shoutout */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
             <label className="inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.15em] text-white/50">
@@ -416,12 +397,7 @@ export default function GoldClaimPage() {
             onChange={(e) => setShoutout(e.target.value)}
             placeholder="Big up the whole crew — 15 words max"
             rows={3}
-            className="w-full rounded-xl bg-white/[0.05] border border-white/10
-                       px-4 py-3 text-white placeholder-white/40
-                       outline-none backdrop-blur resize-none
-                       transition-all duration-200
-                       focus:border-purple-400/60 focus:bg-white/[0.08]
-                       focus:shadow-[0_0_0_3px_rgba(168,85,247,0.2)]"
+            className="w-full rounded-xl bg-white/[0.05] border border-white/10 px-4 py-3 text-white placeholder-white/40 outline-none backdrop-blur resize-none transition-all duration-200 focus:border-purple-400/60 focus:bg-white/[0.08] focus:shadow-[0_0_0_3px_rgba(168,85,247,0.2)]"
           />
         </div>
 
@@ -436,15 +412,7 @@ export default function GoldClaimPage() {
         <button
           type="submit"
           disabled={claiming || uploadingPhoto || tooManyWords}
-          className="group relative w-full overflow-hidden rounded-xl
-                     bg-gradient-to-r from-purple-500 via-fuchsia-500 to-purple-500
-                     bg-[length:200%_100%] animate-gradient-x
-                     py-3 font-semibold text-white
-                     shadow-[0_8px_30px_-8px_rgba(168,85,247,0.9)]
-                     transition-all duration-300
-                     hover:shadow-[0_12px_40px_-8px_rgba(217,70,239,1)]
-                     hover:-translate-y-0.5
-                     disabled:opacity-60 disabled:cursor-not-allowed"
+          className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-purple-500 via-fuchsia-500 to-purple-500 bg-[length:200%_100%] animate-gradient-x py-3 font-semibold text-white shadow-[0_8px_30px_-8px_rgba(168,85,247,0.9)] transition-all duration-300 hover:shadow-[0_12px_40px_-8px_rgba(217,70,239,1)] hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <span className="relative z-10 inline-flex items-center gap-2">
             <FiEdit3 />
@@ -479,12 +447,7 @@ function Shell({ children }) {
         }}
       />
 
-      <div
-        className="relative w-full max-w-md rounded-3xl p-8
-                   bg-white/[0.04] backdrop-blur-2xl
-                   border border-white/10
-                   shadow-[0_8px_40px_0_rgba(139,92,246,0.25),inset_0_1px_0_0_rgba(255,255,255,0.15)]"
-      >
+      <div className="relative w-full max-w-md rounded-3xl p-8 bg-white/[0.04] backdrop-blur-2xl border border-white/10 shadow-[0_8px_40px_0_rgba(139,92,246,0.25),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
         {children}
       </div>
     </div>

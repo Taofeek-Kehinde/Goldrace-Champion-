@@ -1,9 +1,11 @@
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
+
 /* ============================================
-   Theme + custom animations (Tailwind v4 CSS-first)
+   Theme tokens
    ============================================ */
 @theme {
+  /* Motion */
   --animate-pulse-slow: pulse 8s ease-in-out infinite;
   --animate-pulse-slower: pulse 12s ease-in-out infinite;
   --animate-float: float 10s ease-in-out infinite;
@@ -13,22 +15,111 @@
     0%, 100% { transform: translate(-50%, 0) scale(1); }
     50%      { transform: translate(-50%, -30px) scale(1.05); }
   }
-
   @keyframes gradient-x {
     0%, 100% { background-position: 0% 50%; }
     50%      { background-position: 100% 50%; }
   }
+
+  /* Semantic colors — driven by CSS variables below */
+  --color-canvas:          var(--canvas);
+  --color-surface:         var(--surface);
+  --color-surface-hover:   var(--surface-hover);
+  --color-hairline:        var(--hairline);
+  --color-ink:             var(--ink);
+  --color-ink-muted:       var(--ink-muted);
+  --color-ink-subtle:      var(--ink-subtle);
+  --color-accent:          var(--accent);
+}
+
+/* ============================================
+   Dark theme (default)
+   ============================================ */
+:root,
+:root.dark {
+  color-scheme: dark;
+
+  --canvas:        #0a0a0d;
+  --surface:       rgba(255, 255, 255, 0.03);
+  --surface-hover: rgba(255, 255, 255, 0.05);
+  --hairline:      rgba(255, 255, 255, 0.08);
+  --ink:           #ffffff;
+  --ink-muted:     rgba(255, 255, 255, 0.55);
+  --ink-subtle:    rgba(255, 255, 255, 0.35);
+  --accent:        #a78bfa;
+}
+
+/* ============================================
+   Light theme
+   ============================================ */
+:root.light {
+  color-scheme: light;
+
+  --canvas:        #f7f7f9;
+  --surface:       rgba(0, 0, 0, 0.02);
+  --surface-hover: rgba(0, 0, 0, 0.04);
+  --hairline:      rgba(0, 0, 0, 0.08);
+  --ink:           #111114;
+  --ink-muted:     rgba(0, 0, 0, 0.6);
+  --ink-subtle:    rgba(0, 0, 0, 0.4);
+  --accent:        #7c3aed;
 }
 
 /* ============================================
    Base layer
    ============================================ */
 @layer base {
+  html, body {
+    background-color: var(--canvas);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
   body {
-    @apply bg-[#08060f] text-white antialiased;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 }
 
+:root {
+  --navbar-h: 4rem;
+}
+/* ============================================
+   Reusable utilities
+   ============================================ */
+@utility surface-card {
+  border-radius: 1rem;
+  background-color: var(--surface);
+  border: 1px solid var(--hairline);
+  backdrop-filter: blur(16px);
+}
+
+@utility surface-input {
+  width: 100%;
+  border-radius: 0.75rem;
+  background-color: var(--surface);
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+
+  &::placeholder {
+    color: var(--ink-subtle);
+  }
+  &:focus {
+    border-color: var(--ink-subtle);
+    background-color: var(--surface-hover);
+  }
+}
+
+@utility btn-primary {
+  border-radius: 0.75rem;
+  background-color: var(--ink);
+  color: var(--canvas);
+  font-weight: 500;
+  transition: opacity 0.15s ease, transform 0.05s ease;
+
+  &:hover { opacity: 0.9; }
+  &:active { transform: scale(0.99); }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
 /* ============================================
    Custom utility: animated gradient text
    ============================================ */

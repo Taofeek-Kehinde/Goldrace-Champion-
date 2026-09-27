@@ -54,9 +54,11 @@ export const uploadSelfie = createAsyncThunk(
 
 // ---------------------------------------------------------------
 // Claim a coin via the atomic RPC.
-// After a successful claim, refresh the profile so the navbar's
-// coin balance updates immediately (the DB already credited us
-// through the claim_coin RPC).
+//
+// On success we refresh two things:
+//   1. The user's profile → updates navbar coin balance
+//   2. The leaderboard    → updates their position + coin count
+//      on this screen immediately, without waiting for a page reload
 // ---------------------------------------------------------------
 export const claimCoin = createAsyncThunk(
   'coinClaim/claim',
@@ -70,18 +72,19 @@ export const claimCoin = createAsyncThunk(
     if (error) return rejectWithValue(error.message);
     if (!data?.success) return rejectWithValue(data?.error || 'claim_failed');
 
-    // The RPC credited the claimer's balance in the DB. Pull the fresh
-    // profile so the navbar reflects it without a page reload.
+    // 1. Refresh the claimer's profile so the navbar balance updates
     const { data: auth } = await supabase.auth.getUser();
     if (auth?.user?.id) {
-      // If the RPC conveniently returns new_balance, apply it right away
-      // (avoids waiting on the network round-trip).
+      // Optimistic: if the RPC returned the new balance, apply it now
       if (typeof data.new_balance === 'number') {
         dispatch(updateBalance(data.new_balance));
       }
-      // Then reconcile with the server as source of truth.
+      // Server as source of truth
       dispatch(fetchProfile(auth.user.id));
     }
+
+    // 2. Refresh the leaderboard so this claim shows up immediately
+    dispatch(fetchCoinLeaderboard());
 
     return data;
   }
@@ -135,7 +138,7 @@ const coinClaimSlice = createSlice({
     claiming: false,
     claimResult: null,
     claimError: null,
-    justClaimed: false,   // ← set locally when the current user claimed
+    justClaimed: false,
 
     leaderboard: [],
     leaderboardLoading: false,
@@ -196,9 +199,6 @@ const coinClaimSlice = createSlice({
         s.claiming = false;
         s.claimResult = a.payload;
         s.justClaimed = true;
-        // Reflect the claim on the local coin so the form hides.
-        // Use the caller's real user id — pulled from the RPC result if
-        // the server returns it, otherwise leave the DB value in place.
         if (s.coin && a.payload?.claimed_by) {
           s.coin.claimed_by = a.payload.claimed_by;
         }

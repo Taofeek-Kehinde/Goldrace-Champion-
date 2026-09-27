@@ -40,58 +40,49 @@ export default function Leaderboard() {
   }, [list, query]);
 
   return (
-    <div className="h-[calc(100dvh-4rem)] flex flex-col overflow-hidden bg-[#08060f] relative">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-40 -left-40 w-[28rem] h-[28rem] rounded-full bg-purple-600/25 blur-[130px] animate-pulse-slow" />
-        <div className="absolute top-1/3 -right-40 w-[26rem] h-[26rem] rounded-full bg-fuchsia-500/20 blur-[130px] animate-pulse-slower" />
+    <div className="h-[calc(100dvh-4rem)] flex flex-col overflow-hidden bg-[var(--canvas)] relative">
+      {/* Soft glow — dark mode only */}
+      <div className="pointer-events-none absolute inset-0 hidden dark:block">
+        <div className="absolute -top-40 -left-40 w-[28rem] h-[28rem] rounded-full bg-purple-600/15 blur-[130px] animate-pulse-slow" />
+        <div className="absolute top-1/3 -right-40 w-[26rem] h-[26rem] rounded-full bg-fuchsia-500/10 blur-[130px] animate-pulse-slower" />
       </div>
 
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.05]"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)',
-          backgroundSize: '44px 44px',
-        }}
-      />
-
-      <header className="relative shrink-0 px-4 sm:px-6 pt-5 pb-3 border-b border-white/5">
+      <header className="relative shrink-0 px-4 sm:px-6 pt-5 pb-3 border-b border-[var(--hairline)]">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center gap-3 flex-wrap mb-4">
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight flex items-center gap-2">
-              <HiOutlineFire className="text-orange-400 drop-shadow-[0_0_14px_rgba(251,146,60,0.7)]" />
-              <span className="shimmer-text">DJ Leaderboard</span>
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight flex items-center gap-2 text-[var(--ink)]">
+              <HiOutlineFire className="text-orange-500" />
+              DJ Leaderboard
             </h1>
 
-            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 border border-green-500/30 backdrop-blur shrink-0">
+            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[var(--surface)] border border-[var(--hairline)] shrink-0">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
               </span>
-              <span className="text-[10px] text-green-300 font-semibold tracking-[0.15em]">
+              <span className="text-[10px] text-[var(--ink-muted)] font-semibold tracking-[0.15em]">
                 LIVE
               </span>
             </span>
 
-            <span className="ml-auto text-xs text-white/40 tabular-nums hidden sm:block">
+            <span className="ml-auto text-xs text-[var(--ink-subtle)] tabular-nums hidden sm:block">
               {filtered.length} DJ{filtered.length === 1 ? '' : 's'}
             </span>
           </div>
 
           {list.length > 0 && (
             <div className="relative">
-              <FiSearch className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40" />
+              <FiSearch className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--ink-subtle)]" />
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search DJs…"
-                className="w-full rounded-xl bg-white/[0.05] border border-white/10
-                           pl-11 pr-10 py-2.5 text-sm text-white placeholder-white/40
-                           outline-none backdrop-blur
+                className="w-full rounded-xl bg-[var(--surface)] border border-[var(--hairline)]
+                           pl-11 pr-10 py-2.5 text-sm text-[var(--ink)] placeholder-[var(--ink-subtle)]
+                           outline-none
                            transition-all duration-200
-                           focus:border-purple-400/60 focus:bg-white/[0.08]
-                           focus:shadow-[0_0_0_3px_rgba(168,85,247,0.2)]"
+                           focus:border-[var(--ink-subtle)] focus:bg-[var(--surface-hover)]"
               />
               {query && (
                 <button
@@ -99,7 +90,7 @@ export default function Leaderboard() {
                   onClick={() => setQuery('')}
                   aria-label="Clear search"
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md
-                             text-white/40 hover:text-white hover:bg-white/[0.06]
+                             text-[var(--ink-subtle)] hover:text-[var(--ink)] hover:bg-[var(--surface-hover)]
                              transition-colors"
                 >
                   <FiX size={14} />
@@ -109,14 +100,16 @@ export default function Leaderboard() {
           )}
 
           {error && (
-            <div className="mt-3 text-sm text-red-300 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-2.5 backdrop-blur">
+            <div className="mt-3 text-sm text-red-500 dark:text-red-300/90
+                            bg-red-500/[0.08] border border-red-500/20
+                            rounded-xl px-4 py-2.5">
               {error}
             </div>
           )}
         </div>
       </header>
 
-      <main className="relative flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-4 djs-scroll">
+      <main className="relative flex-1 min-h-0 overflow-y-auto scrollbar-thin px-4 sm:px-6 py-4 djs-scroll">
         <div className="max-w-3xl mx-auto">
           {loading && list.length === 0 ? (
             <LoadingSkeleton />
@@ -152,20 +145,28 @@ export default function Leaderboard() {
 function DjRow({ dj, rank, voted, isMine, onVote }) {
   const votes = dj.vote_counts?.total_votes ?? 0;
   const isPodium = rank <= 3;
+  const isFirst = rank === 1;
+
+  const rankBadgeClass =
+    rank === 1
+      ? 'bg-yellow-500 border-yellow-400 text-black'
+      : rank === 2
+      ? 'bg-slate-400 border-slate-300 text-black'
+      : rank === 3
+      ? 'bg-orange-500 border-orange-400 text-black'
+      : 'bg-[var(--canvas)] border-[var(--hairline)] text-[var(--ink-muted)]';
 
   return (
     <div
-      className={`
-        group relative rounded-2xl
-        transition-all duration-300 ease-out
-        bg-white/[0.04] backdrop-blur-xl
-        border border-white/10
-        hover:border-purple-400/40 hover:bg-white/[0.06]
-        hover:shadow-[0_10px_40px_-12px_rgba(168,85,247,0.55)]
-        ${isPodium ? 'shadow-[0_4px_30px_-12px_rgba(168,85,247,0.4)]' : ''}
-        p-3 sm:p-4
-      `}
+      className={`group relative rounded-2xl p-3 sm:p-4
+                  border transition-all duration-200
+                  ${
+                    isFirst
+                      ? 'bg-yellow-500/[0.06] border-yellow-500/30 hover:bg-yellow-500/[0.09]'
+                      : 'bg-[var(--surface)] border-[var(--hairline)] hover:bg-[var(--surface-hover)]'
+                  }`}
     >
+      {/* Podium accent bar */}
       {isPodium && (
         <span
           className={`absolute left-0 top-3 bottom-3 w-0.5 rounded-full ${
@@ -187,36 +188,32 @@ function DjRow({ dj, rank, voted, isMine, onVote }) {
                 src={dj.cover_url}
                 alt={dj.stage_name}
                 loading="lazy"
-                className="w-12 h-12 rounded-xl object-cover border border-white/10"
+                className="w-12 h-12 rounded-xl object-cover border border-[var(--hairline)]"
               />
             ) : (
-              <div className="w-12 h-12 rounded-xl border border-white/10 bg-gradient-to-br from-purple-500/30 via-fuchsia-500/20 to-cyan-400/20 flex items-center justify-center">
-                <FiMusic className="text-white/70" size={18} />
+              <div className="w-12 h-12 rounded-xl border border-[var(--hairline)] bg-[var(--surface-hover)] flex items-center justify-center">
+                <FiMusic className="text-[var(--ink-subtle)]" size={18} />
               </div>
             )}
             <div
-              className={`absolute -top-1.5 -left-1.5 w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-extrabold tabular-nums border backdrop-blur-md ${
-                rank === 1
-                  ? 'bg-yellow-400/90 border-yellow-300 text-yellow-950'
-                  : rank === 2
-                  ? 'bg-slate-300/90 border-slate-200 text-slate-900'
-                  : rank === 3
-                  ? 'bg-orange-400/90 border-orange-300 text-orange-950'
-                  : 'bg-neutral-900/90 border-white/20 text-purple-200'
-              }`}
+              className={`absolute -top-1.5 -left-1.5 w-6 h-6 rounded-md flex items-center justify-center text-[10px] font-bold tabular-nums border ${rankBadgeClass}`}
             >
               {rank}
             </div>
-            {rank === 1 && (
+            {isFirst && (
               <TbCrown
-                className="absolute -top-3 -right-1.5 text-yellow-300 drop-shadow-[0_0_8px_rgba(250,204,21,0.9)] rotate-12"
+                className="absolute -top-3 -right-1.5 text-yellow-500 rotate-12"
                 size={14}
               />
             )}
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-base text-white/90 truncate">
+            <p
+              className={`font-semibold text-base truncate ${
+                isFirst ? 'text-yellow-600 dark:text-yellow-400' : 'text-[var(--ink)]'
+              }`}
+            >
               {dj.stage_name}
             </p>
             <div className="flex items-center gap-2 mt-0.5">
@@ -224,13 +221,16 @@ function DjRow({ dj, rank, voted, isMine, onVote }) {
                 href={dj.music_link}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-purple-300/80 hover:text-purple-200"
+                className="inline-flex items-center gap-1 text-xs text-[var(--ink-subtle)] hover:text-[var(--ink)]"
               >
                 <FiPlayCircle size={12} />
                 Listen
               </a>
               {isMine && (
-                <span className="text-[9px] uppercase tracking-wider bg-purple-500/20 text-purple-200 border border-purple-400/30 px-1.5 py-0.5 rounded-full">
+                <span className="text-[9px] uppercase tracking-wider
+                                 bg-[var(--surface-hover)] text-[var(--ink-muted)]
+                                 border border-[var(--hairline)]
+                                 px-1.5 py-0.5 rounded-full">
                   Your track
                 </span>
               )}
@@ -238,11 +238,11 @@ function DjRow({ dj, rank, voted, isMine, onVote }) {
           </div>
 
           <div className="text-right shrink-0">
-            <p className="text-xl font-extrabold tabular-nums text-white flex items-center gap-1">
-              <FiTrendingUp className="text-purple-400/70 text-xs" />
+            <p className="text-xl font-semibold tabular-nums text-[var(--ink)] flex items-center gap-1">
+              <FiTrendingUp className="text-[var(--ink-subtle)] text-xs" />
               {votes}
             </p>
-            <p className="text-[9px] uppercase tracking-wider text-neutral-500">
+            <p className="text-[9px] uppercase tracking-wider text-[var(--ink-subtle)]">
               votes
             </p>
           </div>
@@ -252,10 +252,10 @@ function DjRow({ dj, rank, voted, isMine, onVote }) {
           <button
             onClick={onVote}
             disabled={voted}
-            className={`relative w-full rounded-xl py-2.5 text-sm font-semibold inline-flex items-center justify-center gap-2 transition-all duration-300 ${
+            className={`w-full rounded-xl py-2.5 text-sm font-medium inline-flex items-center justify-center gap-2 transition-all ${
               voted
-                ? 'bg-white/[0.03] text-neutral-400 border border-white/10 cursor-not-allowed'
-                : 'text-white bg-gradient-to-r from-purple-500 via-fuchsia-500 to-purple-500 bg-[length:200%_100%] animate-gradient-x shadow-[0_6px_24px_-8px_rgba(168,85,247,0.9)] active:scale-[0.98]'
+                ? 'bg-[var(--surface)] text-[var(--ink-subtle)] border border-[var(--hairline)] cursor-not-allowed'
+                : 'bg-[var(--ink)] text-[var(--canvas)] hover:opacity-90 active:scale-[0.98]'
             }`}
           >
             {voted ? (
@@ -281,29 +281,21 @@ function DjRow({ dj, rank, voted, isMine, onVote }) {
               src={dj.cover_url}
               alt={dj.stage_name}
               loading="lazy"
-              className="w-16 h-16 rounded-xl object-cover border border-white/10 group-hover:border-purple-400/40 transition-colors"
+              className="w-16 h-16 rounded-xl object-cover border border-[var(--hairline)]"
             />
           ) : (
-            <div className="w-16 h-16 rounded-xl border border-white/10 bg-gradient-to-br from-purple-500/30 via-fuchsia-500/20 to-cyan-400/20 flex items-center justify-center">
-              <FiMusic className="text-white/70" size={20} />
+            <div className="w-16 h-16 rounded-xl border border-[var(--hairline)] bg-[var(--surface-hover)] flex items-center justify-center">
+              <FiMusic className="text-[var(--ink-subtle)]" size={20} />
             </div>
           )}
           <div
-            className={`absolute -top-2 -left-2 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-extrabold tabular-nums border backdrop-blur-md ${
-              rank === 1
-                ? 'bg-yellow-400/90 border-yellow-300 text-yellow-950 shadow-[0_0_18px_-4px_rgba(250,204,21,0.9)]'
-                : rank === 2
-                ? 'bg-slate-300/90 border-slate-200 text-slate-900'
-                : rank === 3
-                ? 'bg-orange-400/90 border-orange-300 text-orange-950'
-                : 'bg-neutral-900/90 border-white/20 text-purple-200'
-            }`}
+            className={`absolute -top-2 -left-2 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold tabular-nums border ${rankBadgeClass}`}
           >
             {rank}
           </div>
-          {rank === 1 && (
+          {isFirst && (
             <TbCrown
-              className="absolute -top-4 -right-2 text-yellow-300 drop-shadow-[0_0_8px_rgba(250,204,21,0.9)] rotate-12 pointer-events-none"
+              className="absolute -top-4 -right-2 text-yellow-500 rotate-12 pointer-events-none"
               size={16}
             />
           )}
@@ -311,11 +303,18 @@ function DjRow({ dj, rank, voted, isMine, onVote }) {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-semibold text-lg truncate text-white/90 group-hover:text-white transition-colors">
+            <p
+              className={`font-semibold text-lg truncate ${
+                isFirst ? 'text-yellow-600 dark:text-yellow-400' : 'text-[var(--ink)]'
+              }`}
+            >
               {dj.stage_name}
             </p>
             {isMine && (
-              <span className="text-[10px] uppercase tracking-wider bg-purple-500/20 text-purple-200 border border-purple-400/30 px-2 py-0.5 rounded-full">
+              <span className="text-[10px] uppercase tracking-wider
+                               bg-[var(--surface-hover)] text-[var(--ink-muted)]
+                               border border-[var(--hairline)]
+                               px-2 py-0.5 rounded-full">
                 Your track
               </span>
             )}
@@ -324,7 +323,7 @@ function DjRow({ dj, rank, voted, isMine, onVote }) {
             href={dj.music_link}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm text-purple-300/80 hover:text-purple-200 transition-colors mt-0.5"
+            className="inline-flex items-center gap-1.5 text-sm text-[var(--ink-subtle)] hover:text-[var(--ink)] transition-colors mt-0.5"
           >
             <FiPlayCircle />
             Listen
@@ -332,11 +331,11 @@ function DjRow({ dj, rank, voted, isMine, onVote }) {
         </div>
 
         <div className="text-right shrink-0">
-          <p className="text-2xl font-extrabold tabular-nums flex items-center gap-1.5 justify-end text-white">
-            <FiTrendingUp className="text-purple-400/70 text-base" />
+          <p className="text-2xl font-semibold tabular-nums flex items-center gap-1.5 justify-end text-[var(--ink)]">
+            <FiTrendingUp className="text-[var(--ink-subtle)] text-base" />
             {votes}
           </p>
-          <p className="text-[10px] uppercase tracking-wider text-neutral-500">
+          <p className="text-[10px] uppercase tracking-wider text-[var(--ink-subtle)]">
             votes
           </p>
         </div>
@@ -345,7 +344,10 @@ function DjRow({ dj, rank, voted, isMine, onVote }) {
           <button
             disabled
             title="You can't vote for your own track"
-            className="px-4 py-2.5 rounded-xl text-sm font-semibold bg-white/[0.03] text-neutral-500 border border-white/10 cursor-not-allowed shrink-0 inline-flex items-center gap-1.5"
+            className="shrink-0 px-4 py-2.5 rounded-xl text-sm font-medium
+                       bg-[var(--surface)] text-[var(--ink-subtle)]
+                       border border-[var(--hairline)] cursor-not-allowed
+                       inline-flex items-center gap-1.5"
           >
             <FiMusic />
             Your track
@@ -354,11 +356,13 @@ function DjRow({ dj, rank, voted, isMine, onVote }) {
           <button
             onClick={onVote}
             disabled={voted}
-            className={`group/btn relative overflow-hidden shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold inline-flex items-center gap-1.5 transition-all duration-300 ${
-              voted
-                ? 'bg-white/[0.03] text-neutral-400 border border-white/10 cursor-not-allowed'
-                : 'text-white border border-transparent bg-gradient-to-r from-purple-500 via-fuchsia-500 to-purple-500 bg-[length:200%_100%] animate-gradient-x shadow-[0_6px_24px_-8px_rgba(168,85,247,0.9)] hover:shadow-[0_10px_32px_-8px_rgba(217,70,239,1)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]'
-            }`}
+            className={`shrink-0 px-4 py-2.5 rounded-xl text-sm font-medium
+                        inline-flex items-center gap-1.5 transition-all
+                        ${
+                          voted
+                            ? 'bg-[var(--surface)] text-[var(--ink-subtle)] border border-[var(--hairline)] cursor-not-allowed'
+                            : 'bg-[var(--ink)] text-[var(--canvas)] hover:opacity-90 active:scale-[0.98]'
+                        }`}
           >
             {voted ? (
               <>
@@ -367,9 +371,8 @@ function DjRow({ dj, rank, voted, isMine, onVote }) {
               </>
             ) : (
               <>
-                <FiHeart className="transition-transform group-hover/btn:scale-110" />
+                <FiHeart />
                 Vote
-                <span className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/25 to-transparent" />
               </>
             )}
           </button>
@@ -385,14 +388,14 @@ function LoadingSkeleton() {
       {[...Array(6)].map((_, i) => (
         <div
           key={i}
-          className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/10 animate-pulse"
+          className="flex items-center gap-4 p-4 rounded-2xl bg-[var(--surface)] border border-[var(--hairline)] animate-pulse"
         >
-          <div className="w-16 h-16 rounded-xl bg-white/[0.06]" />
+          <div className="w-16 h-16 rounded-xl bg-[var(--surface-hover)]" />
           <div className="flex-1 space-y-2">
-            <div className="h-4 w-40 rounded bg-white/[0.06]" />
-            <div className="h-3 w-20 rounded bg-white/[0.04]" />
+            <div className="h-4 w-40 rounded bg-[var(--surface-hover)]" />
+            <div className="h-3 w-20 rounded bg-[var(--surface)]" />
           </div>
-          <div className="h-8 w-16 rounded bg-white/[0.04]" />
+          <div className="h-8 w-16 rounded bg-[var(--surface)]" />
         </div>
       ))}
     </div>
@@ -401,10 +404,12 @@ function LoadingSkeleton() {
 
 function EmptyState() {
   return (
-    <div className="text-center py-20 rounded-3xl border border-dashed border-white/10 bg-white/[0.02] backdrop-blur">
-      <FiMusic className="mx-auto text-5xl text-neutral-600 mb-4" />
-      <p className="text-neutral-300 mb-1 font-medium">The lineup is empty.</p>
-      <p className="text-sm text-neutral-500">
+    <div className="text-center py-20 rounded-2xl border border-dashed border-[var(--hairline)] bg-[var(--surface)]">
+      <FiMusic className="mx-auto text-5xl text-[var(--ink-subtle)] mb-4" />
+      <p className="text-[var(--ink-muted)] mb-1 font-medium">
+        The lineup is empty.
+      </p>
+      <p className="text-sm text-[var(--ink-subtle)]">
         Check back soon — DJs drop here when the night starts.
       </p>
     </div>
@@ -413,14 +418,14 @@ function EmptyState() {
 
 function NoResults({ query, onClear }) {
   return (
-    <div className="text-center py-20 rounded-3xl border border-dashed border-white/10 bg-white/[0.02] backdrop-blur">
-      <FiSearch className="mx-auto text-5xl text-neutral-600 mb-4" />
-      <p className="text-neutral-300 mb-1 font-medium">
+    <div className="text-center py-20 rounded-2xl border border-dashed border-[var(--hairline)] bg-[var(--surface)]">
+      <FiSearch className="mx-auto text-5xl text-[var(--ink-subtle)] mb-4" />
+      <p className="text-[var(--ink-muted)] mb-1 font-medium">
         No DJs match "{query}"
       </p>
       <button
         onClick={onClear}
-        className="mt-3 text-sm text-purple-300 hover:text-purple-200 inline-flex items-center gap-1.5"
+        className="mt-3 text-sm text-[var(--ink-muted)] hover:text-[var(--ink)] inline-flex items-center gap-1.5"
       >
         <FiX />
         Clear search
@@ -451,7 +456,12 @@ function ScrollToTop({ targetSelector }) {
     <button
       onClick={handleClick}
       aria-label="Scroll to top"
-      className="fixed bottom-6 right-6 z-40 w-11 h-11 rounded-full bg-neutral-900/90 backdrop-blur border border-white/15 text-white/80 hover:text-white hover:border-purple-400/50 shadow-[0_8px_30px_-8px_rgba(0,0,0,0.9)] flex items-center justify-center transition-all hover:-translate-y-0.5"
+      className="fixed bottom-6 right-6 z-40 w-11 h-11 rounded-full
+                 bg-[var(--canvas)]/90 backdrop-blur
+                 border border-[var(--hairline)]
+                 text-[var(--ink-muted)] hover:text-[var(--ink)]
+                 shadow-[0_8px_30px_-8px_rgba(0,0,0,0.5)]
+                 flex items-center justify-center transition-all hover:-translate-y-0.5"
     >
       <FiChevronUp size={20} />
     </button>

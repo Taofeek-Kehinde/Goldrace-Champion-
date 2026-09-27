@@ -40,8 +40,8 @@ export default function BatchPrintPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#08060f] flex items-center justify-center">
-        <p className="text-neutral-400">Loading batch…</p>
+      <div className="min-h-screen bg-[var(--canvas)] flex items-center justify-center">
+        <p className="text-[var(--ink-subtle)]">Loading batch…</p>
       </div>
     );
   }
@@ -53,29 +53,39 @@ export default function BatchPrintPage() {
     : '';
 
   return (
-    <div className="min-h-screen bg-[#08060f] text-white">
+    <div className="min-h-screen bg-[var(--canvas)] text-[var(--ink)]">
       {/* ---------- Screen-only toolbar ---------- */}
-      <div className="print:hidden sticky top-0 z-10 border-b border-white/10 bg-neutral-900/70 backdrop-blur">
+      <div className="print:hidden sticky top-0 z-10
+                      border-b border-[var(--hairline)]
+                      bg-[var(--canvas)]/80 backdrop-blur">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
           <Link
             to="/admin"
-            className="inline-flex items-center gap-1.5 text-sm text-neutral-300 hover:text-white transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm
+                       text-[var(--ink-muted)] hover:text-[var(--ink)]
+                       transition-colors"
           >
             <FiArrowLeft />
             Back to Admin
           </Link>
 
           <div className="flex items-center gap-3 text-sm flex-wrap">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/15 border border-purple-400/30 text-purple-200">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full
+                             bg-[var(--surface)] border border-[var(--hairline)]
+                             text-[var(--ink-muted)]">
               <FiMapPin className="text-xs" />
               {clubName}
             </span>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.05] border border-white/10 text-white/70">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full
+                             bg-[var(--surface)] border border-[var(--hairline)]
+                             text-[var(--ink-muted)]">
               <FiHash className="text-xs" />
               {coins.length} codes
             </span>
             {createdAt && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.05] border border-white/10 text-white/50">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full
+                               bg-[var(--surface)] border border-[var(--hairline)]
+                               text-[var(--ink-subtle)]">
                 <FiCalendar className="text-xs" />
                 {createdAt}
               </span>
@@ -84,47 +94,55 @@ export default function BatchPrintPage() {
 
           <button
             onClick={() => window.print()}
-            className="group relative inline-flex items-center gap-2 rounded-xl overflow-hidden
-                       bg-gradient-to-r from-purple-500 via-fuchsia-500 to-purple-500
-                       bg-[length:200%_100%] animate-gradient-x
-                       px-5 py-2.5 font-semibold text-white
-                       shadow-[0_8px_30px_-8px_rgba(168,85,247,0.9)]
-                       hover:shadow-[0_12px_40px_-8px_rgba(217,70,239,1)]
-                       transition-all duration-300"
+            className="inline-flex items-center gap-2 rounded-xl
+                       bg-[var(--ink)] text-[var(--canvas)]
+                       px-5 py-2.5 font-medium text-sm
+                       transition-all
+                       hover:opacity-90 active:scale-[0.99]"
           >
-            <FiPrinter className="relative z-10" />
-            <span className="relative z-10">Print Sheet</span>
-            <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+            <FiPrinter />
+            Print Sheet
           </button>
         </div>
       </div>
 
       {/* ---------- Printable area ---------- */}
       <div className="print-area max-w-6xl mx-auto px-6 py-10">
-        <div className="mb-8 flex items-center justify-between border-b border-white/10 print:border-black/20 pb-4 flex-wrap gap-3">
+        <div className="mb-8 flex items-center justify-between
+                        border-b border-[var(--hairline)] print:border-black/20
+                        pb-4 flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400/20 to-amber-500/10 border border-yellow-400/30 flex items-center justify-center print:bg-transparent print:border-black/40">
-              <FaCoins className="text-yellow-300 text-lg print:text-black" />
+            <div className="w-10 h-10 rounded-xl
+                            bg-[var(--surface)] border border-[var(--hairline)]
+                            flex items-center justify-center
+                            print:bg-transparent print:border-black/40">
+              <FaCoins className="text-yellow-500 print:text-black text-lg" />
             </div>
             <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-white/50 print:text-black/60">
+              <p className="text-xs uppercase tracking-[0.2em]
+                            text-[var(--ink-subtle)] print:text-black/60">
                 Coin Batch
               </p>
-              <p className="font-bold text-lg print:text-black">{clubName}</p>
+              <p className="font-semibold text-lg text-[var(--ink)] print:text-black">
+                {clubName}
+              </p>
             </div>
           </div>
 
           <div className="text-right">
-            <p className="text-xs uppercase tracking-[0.2em] text-white/50 print:text-black/60">
+            <p className="text-xs uppercase tracking-[0.2em]
+                          text-[var(--ink-subtle)] print:text-black/60">
               Total
             </p>
-            <p className="font-bold text-lg tabular-nums print:text-black">
+            <p className="font-semibold text-lg tabular-nums
+                          text-[var(--ink)] print:text-black">
               {coins.length} {coins.length === 1 ? 'coin' : 'coins'}
             </p>
           </div>
         </div>
 
-        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 print:grid-cols-4 print:gap-3">
+        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5
+                        print:grid-cols-4 print:gap-3">
           {coins.map((c, idx) => (
             <CoinCard
               key={c.id}
@@ -136,7 +154,10 @@ export default function BatchPrintPage() {
           ))}
         </div>
 
-        <div className="mt-10 pt-4 border-t border-white/10 print:border-black/20 flex items-center justify-between text-xs text-white/40 print:text-black/60 flex-wrap gap-2">
+        <div className="mt-10 pt-4 border-t border-[var(--hairline)] print:border-black/20
+                        flex items-center justify-between text-xs
+                        text-[var(--ink-subtle)] print:text-black/60
+                        flex-wrap gap-2">
           <span>
             Each QR scans once. First scan opens the claim form; later scans
             show "Coin already used".
@@ -174,19 +195,11 @@ function CoinCard({ index, token, url, clubName }) {
   return (
     <div
       className="coin-card group relative rounded-2xl p-4 overflow-hidden
-                 bg-white/[0.04] backdrop-blur-xl
-                 border border-white/10
-                 hover:border-purple-400/40 hover:-translate-y-0.5
-                 transition-all duration-300
+                 bg-[var(--surface)] border border-[var(--hairline)]
+                 transition-colors hover:bg-[var(--surface-hover)]
                  break-inside-avoid
-                 print:bg-white print:border-black/30 print:hover:translate-y-0 print:backdrop-blur-none"
+                 print:bg-white print:border-black/30 print:hover:bg-white"
     >
-      {/* Corner accents (screen-only flourish) */}
-      <span className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-purple-400/40 rounded-tl-2xl print:hidden" />
-      <span className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-purple-400/40 rounded-tr-2xl print:hidden" />
-      <span className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-purple-400/40 rounded-bl-2xl print:hidden" />
-      <span className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-purple-400/40 rounded-br-2xl print:hidden" />
-
       {/* Download button — appears on hover (screen only) */}
       <button
         type="button"
@@ -199,10 +212,9 @@ function CoinCard({ index, token, url, clubName }) {
           absolute top-3 right-3 z-10
           w-8 h-8 rounded-lg
           flex items-center justify-center
-          bg-neutral-900/85 backdrop-blur
-          border border-white/15
-          text-white/70 hover:text-white
-          shadow-[0_4px_20px_-6px_rgba(0,0,0,0.9)]
+          bg-[var(--canvas)]/90 backdrop-blur
+          border border-[var(--hairline)]
+          text-[var(--ink-muted)] hover:text-[var(--ink)]
           opacity-0 scale-90
           group-hover:opacity-100 group-hover:scale-100
           focus-visible:opacity-100 focus-visible:scale-100
@@ -211,7 +223,7 @@ function CoinCard({ index, token, url, clubName }) {
         "
       >
         {downloading ? (
-          <span className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+          <span className="w-3.5 h-3.5 rounded-full border-2 border-[var(--ink-subtle)] border-t-[var(--ink)] animate-spin" />
         ) : (
           <FiDownload size={14} />
         )}
@@ -220,19 +232,21 @@ function CoinCard({ index, token, url, clubName }) {
       {/* Card header — club name + coin index */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1.5 min-w-0">
-          <FaCoins className="text-yellow-300 text-xs print:text-black shrink-0" />
-          <span className="text-[10px] uppercase tracking-[0.15em] text-white/60 print:text-black/70 truncate">
+          <FaCoins className="text-yellow-500 print:text-black text-xs shrink-0" />
+          <span className="text-[10px] uppercase tracking-[0.15em]
+                           text-[var(--ink-muted)] print:text-black/70 truncate">
             {clubName}
           </span>
         </div>
-        <span className="text-[10px] font-mono text-white/40 print:text-black/60 tabular-nums shrink-0">
+        <span className="text-[10px] font-mono tabular-nums shrink-0
+                         text-[var(--ink-subtle)] print:text-black/60">
           #{String(index).padStart(3, '0')}
         </span>
       </div>
 
-      {/* QR */}
+      {/* QR — always white bg so it scans */}
       <div className="flex justify-center mb-3">
-        <div className="p-2 rounded-xl bg-white shadow-[0_4px_20px_-8px_rgba(0,0,0,0.8)]">
+        <div className="p-2 rounded-xl bg-white">
           <QRCodeSVG
             value={url}
             size={150}
@@ -244,7 +258,8 @@ function CoinCard({ index, token, url, clubName }) {
       </div>
 
       {/* Token */}
-      <p className="text-center font-mono text-[10px] text-white/50 print:text-black/70 truncate">
+      <p className="text-center font-mono text-[10px] truncate
+                    text-[var(--ink-subtle)] print:text-black/70">
         {token}
       </p>
     </div>

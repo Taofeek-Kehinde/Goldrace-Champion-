@@ -1,139 +1,219 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { FiAward, FiTrendingUp } from 'react-icons/fi';
-import { FaCoins } from 'react-icons/fa';
-import { TbCrown } from 'react-icons/tb';
-import { fetchCoinLeaderboard } from './coinClaimSlice';
+import { FiAward, FiTrendingUp, FiLoader } from 'react-icons/fi';
+import { FaCoins, FaCrown } from 'react-icons/fa';
+import { fetchCoinLeaderboard } from '../coins/coinClaimSlice';
+import { supabase } from '../../lib/supabaseClient';
 
 export default function CoinLeaderboard() {
   const dispatch = useDispatch();
   const { leaderboard, leaderboardLoading } = useSelector((s) => s.coinClaim);
   const myUserId = useSelector((s) => s.auth.user?.id);
+  const isAdmin = useSelector((s) => s.auth.profile?.is_admin === true);
 
+  // Initial fetch on mount
   useEffect(() => {
     dispatch(fetchCoinLeaderboard());
   }, [dispatch]);
 
-  if (leaderboardLoading && leaderboard.length === 0) {
-    return (
-      <div className="relative min-h-screen bg-[#08060f] flex items-center justify-center">
-        <p className="text-neutral-400">Loading…</p>
-      </div>
-    );
-  }
+  // ---- LIVE UPDATES ----
+  // Subscribe to realtime changes on the `coins` table.
+  // When any coin is claimed anywhere, refetch the leaderboard.
+  useEffect(() => {
+    const channel = supabase
+      .channel('rt-coins-leaderboard')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'coins' },
+        (payload) => {
+          const justClaimed = payload.new?.claimed_by && !payload.old?.claimed_by;
+          const unclaimed = !payload.new?.claimed_by && payload.old?.claimed_by;
+          if (justClaimed || unclaimed) {
+            dispatch(fetchCoinLeaderboard());
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'coins' },
+        () => {
+          // New coin rows created (batch generation) — refetch just in case
+          dispatch(fetchCoinLeaderboard());
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR') {
+          console.error('[rt] leaderboard channel error');
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [dispatch]);
+
+  const myRow = useMemo(
+    () => leaderboard.find((p) => p.id === myUserId),
+    [leaderboard, myUserId]
+  );
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#08060f]">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-40 -left-40 w-[32rem] h-[32rem] rounded-full bg-yellow-500/15 blur-[130px] animate-pulse-slow" />
-        <div className="absolute top-1/3 -right-40 w-[30rem] h-[30rem] rounded-full bg-purple-500/20 blur-[130px] animate-pulse-slower" />
-      </div>
+    <div className="h-[calc(100dvh-4rem)] flex flex-col overflow-hidden bg-[var(--canvas)]">
+      {/* Fixed header */}
+      <header className="relative shrink-0 border-b border-[var(--hairline)]">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-5 sm:py-6">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="inline-flex items-center justify-center w-11 h-11 rounded-xl
+                              bg-[var(--surface)] border border-[var(--hairline)]">
+                <FaCoins className="text-yellow-500/90 text-lg" />
+              </div>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[var(--ink)]">
+                  Coin Leaderboard
+                </h1>
+                <p className="text-xs sm:text-sm text-[var(--ink-subtle)] mt-0.5">
+                  Top earners this season
+                </p>
+              </div>
+            </div>
 
-      <div className="relative max-w-3xl mx-auto p-6">
-        <div className="flex items-center gap-3 mb-8 flex-wrap">
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight flex items-center gap-2">
-            <FaCoins className="text-yellow-300 drop-shadow-[0_0_14px_rgba(250,204,21,0.7)]" />
-            <span className="shimmer-text">Coin Leaderboard</span>
-          </h1>
-        </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              {myRow && (
+                <div className="inline-flex items-center gap-2 rounded-full
+                                bg-yellow-500/[0.08] border border-yellow-500/30
+                                px-3 py-1 text-xs">
+                  <span className="text-[10px] uppercase tracking-wider text-yellow-600 dark:text-yellow-400 font-semibold">
+                    Your rank
+                  </span>
+                  <span className="text-yellow-700 dark:text-yellow-300 font-semibold tabular-nums">
+                    #{myRow.rank}
+                  </span>
+                  <span className="text-yellow-600/50 dark:text-yellow-400/50">·</span>
+                  <span className="text-yellow-700 dark:text-yellow-300 font-semibold tabular-nums">
+                    {myRow.coin_count}
+                  </span>
+                  <span className="text-[10px] uppercase tracking-wider text-yellow-600/70 dark:text-yellow-400/70">
+                    coins
+                  </span>
+                </div>
+              )}
 
-        {leaderboard.length === 0 ? (
-          <div className="text-center py-20 rounded-3xl border border-dashed border-white/10 bg-white/[0.02] backdrop-blur">
-            <FaCoins className="mx-auto text-5xl text-neutral-700 mb-4" />
-            <p className="text-neutral-300 mb-1 font-medium">No coins claimed yet.</p>
-            <p className="text-sm text-neutral-500">
-              Scan a coin's QR at the venue to enter the board.
-            </p>
+              {!leaderboardLoading && leaderboard.length > 0 && (
+                <span className="inline-flex items-center gap-1.5 rounded-full
+                                 bg-[var(--surface)] border border-[var(--hairline)]
+                                 px-3 py-1 text-xs font-medium text-[var(--ink-muted)]">
+                  <FiTrendingUp className="text-xs" />
+                  {leaderboard.length}{' '}
+                  {leaderboard.length === 1 ? 'player' : 'players'}
+                </span>
+              )}
+            </div>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {leaderboard.map((row) => {
-              const rank = row.rank;
-              const isMe = row.id === myUserId;
-              const isPodium = rank <= 3;
 
-              return (
-                <div
-                  key={row.id}
-                  className={`
-                    group relative flex items-center gap-4 p-4 rounded-2xl
-                    transition-all duration-300 ease-out
-                    bg-white/[0.04] backdrop-blur-xl
-                    border ${
-                      isMe
-                        ? 'border-purple-400/50 shadow-[0_8px_40px_-12px_rgba(168,85,247,0.7)]'
-                        : 'border-white/10 hover:border-purple-400/40'
-                    }
-                    hover:-translate-y-0.5
-                  `}
-                >
-                  {isPodium && (
-                    <span
-                      className={`absolute left-0 top-3 bottom-3 w-0.5 rounded-full ${
-                        rank === 1
-                          ? 'bg-gradient-to-b from-yellow-300 to-amber-500'
-                          : rank === 2
-                          ? 'bg-gradient-to-b from-slate-200 to-slate-400'
-                          : 'bg-gradient-to-b from-orange-300 to-orange-500'
-                      }`}
-                    />
-                  )}
+          {!myRow && !isAdmin && leaderboard.length > 0 && (
+            <p className="mt-3 text-xs text-[var(--ink-subtle)]">
+              You're not on the board yet — claim a coin to join.
+            </p>
+          )}
+        </div>
+      </header>
 
-                  <div className="relative shrink-0">
-                    <div
-                      className={`
-                        w-12 h-12 rounded-xl flex items-center justify-center
-                        font-extrabold tabular-nums text-lg
-                        border backdrop-blur
-                        ${
-                          rank === 1
-                            ? 'bg-yellow-400/15 border-yellow-400/40 text-yellow-300 shadow-[0_0_24px_-6px_rgba(250,204,21,0.7)]'
-                            : rank === 2
-                            ? 'bg-slate-300/10 border-slate-300/30 text-slate-200'
-                            : rank === 3
-                            ? 'bg-orange-400/15 border-orange-400/40 text-orange-300'
-                            : 'bg-white/[0.04] border-white/10 text-purple-300'
-                        }
-                      `}
-                    >
-                      {rank}
-                    </div>
-                    {rank === 1 && (
-                      <TbCrown
-                        className="absolute -top-3 -right-2 text-yellow-300 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)] rotate-12"
-                        size={18}
-                      />
-                    )}
-                  </div>
+      {/* Scrollable list */}
+      <main className="relative flex-1 min-h-0 overflow-y-auto scrollbar-thin">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
+          {leaderboardLoading && leaderboard.length === 0 ? (
+            <div className="flex items-center justify-center py-20">
+              <FiLoader className="animate-spin text-[var(--ink-subtle)]" size={24} />
+            </div>
+          ) : leaderboard.length === 0 ? (
+            <div className="text-center py-20 rounded-2xl
+                            border border-dashed border-[var(--hairline)]
+                            bg-[var(--surface)]">
+              <FiAward className="mx-auto text-3xl text-[var(--ink-subtle)] mb-3" />
+              <p className="text-[var(--ink-muted)] font-medium">
+                No one's on the board yet.
+              </p>
+              <p className="text-sm text-[var(--ink-subtle)] mt-1">
+                Claims will show up here the moment they land.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {leaderboard.map((player, idx) => {
+                const rank = player.rank ?? idx + 1;
+                const isFirst = rank === 1;
+                const isSecond = rank === 2;
+                const isThird = rank === 3;
+                const isMe = player.id === myUserId;
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-semibold text-lg truncate text-white/90 group-hover:text-white transition-colors">
-                        {row.username}
-                      </p>
-                      {isMe && (
-                        <span className="text-[10px] uppercase tracking-wider bg-purple-500/20 text-purple-200 border border-purple-400/30 px-2 py-0.5 rounded-full">
-                          You
+                return (
+                  <div
+                    key={player.id ?? idx}
+                    className={`flex items-center gap-4 p-3 sm:p-4 rounded-xl
+                                border transition-colors
+                                ${
+                                  isFirst
+                                    ? 'bg-yellow-500/[0.06] border-yellow-500/30 hover:bg-yellow-500/[0.09]'
+                                    : isMe
+                                    ? 'bg-[var(--surface-hover)] border-[var(--ink-subtle)]'
+                                    : 'bg-[var(--surface)] border-[var(--hairline)] hover:bg-[var(--surface-hover)]'
+                                }`}
+                  >
+                    <div className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center border">
+                      {isFirst ? (
+                        <FaCrown className="text-yellow-400" size={18} />
+                      ) : (
+                        <span
+                          className={`text-sm font-semibold tabular-nums ${
+                            isSecond
+                              ? 'text-slate-400'
+                              : isThird
+                              ? 'text-orange-500'
+                              : 'text-[var(--ink-muted)]'
+                          }`}
+                        >
+                          {rank}
                         </span>
                       )}
                     </div>
-                  </div>
 
-                  <div className="text-right shrink-0">
-                    <p className="text-2xl font-extrabold tabular-nums flex items-center gap-1.5 justify-end text-white">
-                      <FiTrendingUp className="text-yellow-400/70 text-base" />
-                      {row.coin_count}
-                    </p>
-                    <p className="text-[10px] uppercase tracking-wider text-neutral-500">
-                      coins
-                    </p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p
+                          className={`font-medium truncate ${
+                            isFirst ? 'text-yellow-500' : 'text-[var(--ink)]'
+                          }`}
+                        >
+                          {player.username ?? 'Anonymous'}
+                        </p>
+                        {isMe && (
+                          <span className="text-[10px] uppercase tracking-wider
+                                           bg-[var(--surface-hover)] text-[var(--ink-muted)]
+                                           border border-[var(--hairline)]
+                                           px-2 py-0.5 rounded-full shrink-0">
+                            You
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 text-right">
+                      <p className="text-lg font-semibold tabular-nums text-[var(--ink)] inline-flex items-center gap-1.5">
+                        <FaCoins className="text-yellow-500/80 text-xs" />
+                        {player.coin_count ?? 0}
+                      </p>
+                      <p className="text-[10px] uppercase tracking-wider text-[var(--ink-subtle)]">
+                        coins
+                      </p>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 }

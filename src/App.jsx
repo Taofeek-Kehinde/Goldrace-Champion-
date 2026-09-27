@@ -49,7 +49,7 @@ function App() {
         <Route path="/auth" element={user ? <Navigate to="/" /> : <AuthPage />} />
 
         {/* Public claim page — auth redirect handled inside the component */}
-        <Route path="/gold/:token" element={<GoldClaimPage />} />
+        <Route path="/gold/:id" element={<GoldClaimPage />} />
 
         <Route
           path="/"

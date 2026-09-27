@@ -1,19 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FiEye, FiEyeOff, FiMail, FiLock, FiUser } from 'react-icons/fi';
 import { signIn, signUp } from './authSlice';
 
 export default function AuthPage() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { loading, error } = useSelector((s) => s.auth);
+  const user = useSelector((s) => s.auth.user);
+
   const [mode, setMode] = useState('signin');
   const [form, setForm] = useState({ email: '', password: '', username: '' });
   const [showPassword, setShowPassword] = useState(false);
+
+  // Where to send the user after auth
+  const next = searchParams.get('next') || '/';
+
+  // If already logged in, bounce immediately (with next preserved)
+  useEffect(() => {
+    if (user) navigate(next, { replace: true });
+  }, [user, next, navigate]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (mode === 'signin') dispatch(signIn(form));
     else dispatch(signUp(form));
+    // Redirect is handled by the useEffect above once `user` is set
   };
 
   return (
@@ -25,7 +39,6 @@ export default function AuthPage() {
         <div className="absolute top-1/3 left-1/2 w-[20rem] h-[20rem] -translate-x-1/2 rounded-full bg-cyan-400/20 blur-[120px] animate-float" />
       </div>
 
-      {/* Grid overlay for depth */}
       <div
         className="pointer-events-none absolute inset-0 opacity-[0.06]"
         style={{
@@ -40,12 +53,8 @@ export default function AuthPage() {
         className="relative w-full max-w-md rounded-3xl p-8 sm:p-10
                    bg-white/[0.06] backdrop-blur-2xl
                    border border-white/15
-                   shadow-[0_8px_40px_0_rgba(139,92,246,0.25),inset_0_1px_0_0_rgba(255,255,255,0.15)]
-                   before:absolute before:inset-0 before:rounded-3xl before:pointer-events-none
-                   before:bg-gradient-to-b before:from-white/10 before:to-transparent
-                   before:opacity-60"
+                   shadow-[0_8px_40px_0_rgba(139,92,246,0.25),inset_0_1px_0_0_rgba(255,255,255,0.15)]"
       >
-        {/* Header */}
         <div className="relative mb-8 text-center">
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
             <span className="shimmer-text">
@@ -59,7 +68,6 @@ export default function AuthPage() {
           </p>
         </div>
 
-        {/* Inputs */}
         <div className="space-y-3">
           {mode === 'signup' && (
             <GlassInput
@@ -72,7 +80,6 @@ export default function AuthPage() {
               autoComplete="username"
             />
           )}
-
           <GlassInput
             type="email"
             icon={<FiMail />}
@@ -82,7 +89,6 @@ export default function AuthPage() {
             required
             autoComplete="email"
           />
-
           <GlassInput
             type={showPassword ? 'text' : 'password'}
             icon={<FiLock />}
@@ -115,7 +121,6 @@ export default function AuthPage() {
           </div>
         )}
 
-        {/* Primary button */}
         <button
           type="submit"
           disabled={loading}
@@ -135,16 +140,25 @@ export default function AuthPage() {
           <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/25 to-transparent" />
         </button>
 
-        {/* Mode switch */}
         <button
           type="button"
           onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
           className="mt-5 w-full text-sm text-white/50 hover:text-white transition-colors"
         >
           {mode === 'signin' ? (
-            <>Don't have an account? <span className="text-purple-300 underline-offset-4 hover:underline">Sign up</span></>
+            <>
+              Don't have an account?{' '}
+              <span className="text-purple-300 underline-offset-4 hover:underline">
+                Sign up
+              </span>
+            </>
           ) : (
-            <>Already have an account? <span className="text-purple-300 underline-offset-4 hover:underline">Sign in</span></>
+            <>
+              Already have an account?{' '}
+              <span className="text-purple-300 underline-offset-4 hover:underline">
+                Sign in
+              </span>
+            </>
           )}
         </button>
       </form>

@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { supabase } from '../../lib/supabaseClient';
+import { fetchProfile, updateBalance } from '../auth/authSlice';
 
 // ---------------------------------------------------------------
 // Fetch a coin by token — used by the /gold/:token page
@@ -52,20 +53,36 @@ export const uploadSelfie = createAsyncThunk(
 );
 
 // ---------------------------------------------------------------
-// Claim a coin via the atomic RPC
-// Name comes from the profile server-side — we only send
-// the shoutout and optional photo URL.
+// Claim a coin via the atomic RPC.
+// After a successful claim, refresh the profile so the navbar's
+// coin balance updates immediately (the DB already credited us
+// through the claim_coin RPC).
 // ---------------------------------------------------------------
 export const claimCoin = createAsyncThunk(
   'coinClaim/claim',
-  async ({ token, shoutout, photoUrl }, { rejectWithValue }) => {
+  async ({ token, shoutout, photoUrl }, { dispatch, rejectWithValue }) => {
     const { data, error } = await supabase.rpc('claim_coin', {
       p_token: token,
       p_shoutout: shoutout || null,
       p_photo_url: photoUrl || null,
     });
+
     if (error) return rejectWithValue(error.message);
     if (!data?.success) return rejectWithValue(data?.error || 'claim_failed');
+
+    // The RPC credited the claimer's balance in the DB. Pull the fresh
+    // profile so the navbar reflects it without a page reload.
+    const { data: auth } = await supabase.auth.getUser();
+    if (auth?.user?.id) {
+      // If the RPC conveniently returns new_balance, apply it right away
+      // (avoids waiting on the network round-trip).
+      if (typeof data.new_balance === 'number') {
+        dispatch(updateBalance(data.new_balance));
+      }
+      // Then reconcile with the server as source of truth.
+      dispatch(fetchProfile(auth.user.id));
+    }
+
     return data;
   }
 );
@@ -89,7 +106,6 @@ export const fetchCoinLeaderboard = createAsyncThunk(
 
 // ---------------------------------------------------------------
 // Shoutout feed (public, read-only, from claimed coins)
-// Includes photo_url so selfies render in the feed.
 // ---------------------------------------------------------------
 export const fetchShoutoutFeed = createAsyncThunk(
   'coinClaim/shoutouts',
@@ -119,6 +135,7 @@ const coinClaimSlice = createSlice({
     claiming: false,
     claimResult: null,
     claimError: null,
+    justClaimed: false,   // ← set locally when the current user claimed
 
     leaderboard: [],
     leaderboardLoading: false,
@@ -135,6 +152,7 @@ const coinClaimSlice = createSlice({
       state.claiming = false;
       state.uploadingSelfie = false;
       state.selfieError = null;
+      state.justClaimed = false;
     },
     prependShoutout(state, action) {
       state.shoutouts.unshift(action.payload);
@@ -177,8 +195,13 @@ const coinClaimSlice = createSlice({
       .addCase(claimCoin.fulfilled, (s, a) => {
         s.claiming = false;
         s.claimResult = a.payload;
-        // Mark the local coin as claimed so the form hides
-        if (s.coin) s.coin.claimed_by = 'self';
+        s.justClaimed = true;
+        // Reflect the claim on the local coin so the form hides.
+        // Use the caller's real user id — pulled from the RPC result if
+        // the server returns it, otherwise leave the DB value in place.
+        if (s.coin && a.payload?.claimed_by) {
+          s.coin.claimed_by = a.payload.claimed_by;
+        }
       })
       .addCase(claimCoin.rejected, (s, a) => {
         s.claiming = false;
